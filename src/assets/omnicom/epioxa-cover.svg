@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 780">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f4f2"/>
+      <stop offset="1" stop-color="#e6e6e3"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="780" fill="url(#g)"/>
+  <text x="500" y="380" text-anchor="middle" font-family="Figtree, Arial, sans-serif" font-size="96" font-weight="800" letter-spacing="2" fill="#1b1b1b">EPIOXA</text>
+  <text x="500" y="440" text-anchor="middle" font-family="Figtree, Arial, sans-serif" font-size="26" letter-spacing="6" fill="#8a8a86">epioxa.com  &#8599;</text>
+</svg>

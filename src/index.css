@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&display=swap');
+@import 'tailwindcss';
+
+body {
+  margin: 0;
+  background: #000;
+  font-family: 'Figtree', sans-serif;
+  font-size: 17.5px;
+  color: #3f3f46;
+}
+
+/* 全站隐藏系统鼠标，改用自定义鼠标（仅在有精确指针的设备上） */
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+}
+
+.container-fluid {
+  width: 100%;
+  max-width: clamp(36rem, 88vw, 96rem);
+  margin-inline: auto;
+  padding-inline: clamp(1.5rem, 11vw, 12rem);
+  box-sizing: border-box;
+}
+
+/* Nexus only (>=1440px): keep the original left gap, but let content run all
+   the way out to an 85px right gap (drop the centered max-width so it fills). */
+@media (min-width: 1440px) {
+  .nexus-page .container-fluid,
+  .hiveai-page .container-fluid {
+    max-width: none;
+    margin-inline: 0;
+    padding-left: calc((100vw - clamp(36rem, 88vw, 96rem)) / 2 + clamp(1.5rem, 11vw, 12rem));
+    padding-right: 85px;
+  }
+}
+
+/* Case-study media (challenge sections): rounded 5px, thin light stroke, soft glow shadow */
+.case-media-scope img,
+.case-media-scope video {
+  border-radius: 5px;
+  border: 1px solid #ececec;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Challenge section titles (Old Designs / Ideation / Solution): light weight */
+.case-media-scope h3 {
+  font-weight: 300;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Hero 标题：每个单词逐个"跳"入（Toyfight 风格，强跳跃感 + 弹跳落定） */
+@keyframes wordJump {
+  0% {
+    opacity: 0;
+    transform: translateY(1.15em);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-0.32em);
+  }
+  78% {
+    transform: translateY(0.08em);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.word-in {
+  animation: wordJump 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
