@@ -28,7 +28,8 @@ body {
    the way out to an 85px right gap (drop the centered max-width so it fills). */
 @media (min-width: 1440px) {
   .nexus-page .container-fluid,
-  .hiveai-page .container-fluid {
+  .hiveai-page .container-fluid,
+  .lepal-page .container-fluid {
     max-width: none;
     margin-inline: 0;
     padding-left: calc((100vw - clamp(36rem, 88vw, 96rem)) / 2 + clamp(1.5rem, 11vw, 12rem));
@@ -60,6 +61,90 @@ body {
 
 .animate-marquee {
   animation: marquee 30s linear infinite;
+}
+
+/* 主页项目区的点阵背景 */
+.dot-grid {
+  background-color: #f3f3f4;
+  background-image: radial-gradient(#cbcbd2 1px, transparent 1.4px);
+  background-size: 20px 20px;
+}
+
+/* Lepal slot 5c 加载动效的纯代码复刻 */
+@keyframes l5cOrbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes l5cCounter {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes l5cFloat {
+  0%,
+  100% {
+    transform: translateY(-7px);
+  }
+  50% {
+    transform: translateY(7px);
+  }
+}
+@keyframes l5cTwinkle {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes l5cBeam {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+@keyframes l5cText {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 水晶球：忽明忽暗的发光 + 上冒的星星 */
+@keyframes crystalGlow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+@keyframes crystalRise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.55);
+  }
 }
 
 /* Hero 标题：每个单词逐个"跳"入（Toyfight 风格，强跳跃感 + 弹跳落定） */

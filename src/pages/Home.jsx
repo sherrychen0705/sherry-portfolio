@@ -29,11 +29,11 @@ const filterTags = ['Healthcare Digital Experience', 'UX', 'Visual']
 // 新排版：浅灰底盒子内嵌封面图。顺序在 2 列网格里排成
 // OMNICOM|NEXUS / HIVE|SKINLAB / LEPAL|GLOBBBE
 const newCovers = [
-  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '00', link: '/omnicom-entry', cats: ['Healthcare Digital Experience', 'Visual'] },
-  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '01', link: '/nexus', cats: ['Healthcare Digital Experience', 'UX'] },
+  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '00', link: '/omnicom-entry', cats: ['Healthcare Digital Experience', 'Visual'], imgAspect: '6 / 5' },
+  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '01', link: '/nexus', cats: ['Healthcare Digital Experience', 'UX'], imgAspect: '6 / 5' },
   { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '02', link: '/hiveai', cats: ['UX'] },
-  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '03', link: '/skinlab', cats: ['UX'] },
-  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '04', cats: ['Visual'] },
+  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '03', link: '/lepal', cats: ['Visual'] },
+  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '04', link: '/skinlab', cats: ['UX'] },
   { img: workGlobbbe, title: 'GLOBBBE', category: 'UX Design · Game Design', num: '05', link: '/globbbe', cats: ['UX', 'Visual'] },
 ]
 
@@ -96,30 +96,54 @@ function HeroVideo() {
   )
 }
 
+// hover 项目封面时用 Web Audio 生成一声短促"滴"
+let beepCtx
+function playBeep() {
+  try {
+    if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)()
+    if (beepCtx.state === 'suspended') beepCtx.resume()
+    const t = beepCtx.currentTime
+    const osc = beepCtx.createOscillator()
+    const gain = beepCtx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(880, t)
+    gain.gain.setValueAtTime(0.0001, t)
+    gain.gain.exponentialRampToValueAtTime(0.12, t + 0.008)
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.11)
+    osc.connect(gain)
+    gain.connect(beepCtx.destination)
+    osc.start(t)
+    osc.stop(t + 0.12)
+  } catch {
+    /* 音频不可用时静默忽略 */
+  }
+}
+
 function WorkShowcaseNew({ activeFilter }) {
   const covers = activeFilter ? newCovers.filter((c) => c.cats.includes(activeFilter)) : newCovers
   return (
-    <section className="container-fluid mt-24 grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2">
+    <section className="container-fluid mt-24 grid grid-cols-1 items-start gap-x-8 gap-y-24 md:grid-cols-2">
       {covers.map((c, i) => {
         const Wrapper = c.link ? Link : 'div'
         const wrapperProps = c.link ? { to: c.link } : {}
         return (
           <Reveal strong key={c.title} delay={(i % 2) * 120} className="text-left">
-            <Wrapper {...wrapperProps} className="group block">
+            <Wrapper {...wrapperProps} onMouseEnter={playBeep} className="group block">
               {/* 顶部细线 + 标题/分类（左） + 编号（右） */}
-              <div className="flex items-start justify-between border-t border-neutral-200 pt-3">
+              <div className="flex items-start justify-between border-t border-[#BEBEBE] pt-3">
                 <div>
                   <h3 className="text-sm font-semibold text-black">{c.title}</h3>
                   <p className="mt-0.5 text-sm text-neutral-400">{c.category}</p>
                 </div>
                 <span className="text-sm text-neutral-400">{c.num}</span>
               </div>
-              {/* 浅灰底盒子：固定 4:3 比例，尺寸统一；图片居中等比缩放不撑大框 */}
-              <div className="mt-4 flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[3px] bg-[#f1f1f0] p-8 md:p-12">
+              {/* 白底盒子：比例随封面图，图片放大填充（约 1.7×） */}
+              <div className="mt-4 overflow-hidden rounded-[3px] bg-white p-3 md:p-4">
                 <img
                   src={c.img}
                   alt={c.title}
-                  className={`max-h-full max-w-full rounded-[2px] object-contain shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out ${
+                  style={c.imgAspect ? { aspectRatio: c.imgAspect } : undefined}
+                  className={`block w-full rounded-[2px] object-cover shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out ${
                     c.link ? 'group-hover:scale-[1.02]' : ''
                   }`}
                 />
@@ -155,11 +179,12 @@ function RotatingSquare() {
 
 function WorkShowcase({ activeFilter, setActiveFilter }) {
   return (
-    <div className="mt-24">
+    <div>
       {/* 横跨整个屏幕的灰色横线 */}
       <div className="border-t border-neutral-300" />
       <div className="container-fluid mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-left">
         <RotatingSquare />
+        <span className="text-sm text-neutral-500">Filter by:</span>
         {filterTags.map((tag, i) => {
           const isActive = activeFilter === tag
           return (
@@ -196,14 +221,14 @@ function MoreWorks() {
           B2B SaaS | App Visual | User Research | Service Design | XR Concept | Industrial Design
         </p>
       </div>
-      <div className="mt-8 overflow-hidden">
+      <div className="mt-8 overflow-hidden py-10">
         <div className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused]">
           {track.map((src, i) => (
             <img
               key={i}
               src={src}
               alt=""
-              className="h-56 w-auto flex-none rounded-[3px] object-cover"
+              className="relative h-56 w-auto flex-none rounded-[3px] object-cover transition-transform duration-500 ease-out hover:z-10 hover:scale-[1.3]"
             />
           ))}
         </div>
@@ -248,8 +273,10 @@ function Home() {
       <div className="h-24" />
       <Hero />
       <HeroVideo />
-      <WorkShowcase activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
-      <WorkShowcaseNew activeFilter={activeFilter} />
+      <div className="dot-grid mt-24 pb-20">
+        <WorkShowcase activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
+        <WorkShowcaseNew activeFilter={activeFilter} />
+      </div>
       <MoreWorks />
       <CreativeDesk />
       <Footer light />

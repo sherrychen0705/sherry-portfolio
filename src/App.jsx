@@ -9,6 +9,7 @@ import Omnicom from './pages/Omnicom'
 import Jakafi from './pages/Jakafi'
 import Niktimvo from './pages/Niktimvo'
 import Kevzara from './pages/Kevzara'
+import Lepal from './pages/Lepal'
 import CustomCursor from './components/CustomCursor'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path="/jakafi" element={<Jakafi />} />
         <Route path="/niktimvo" element={<Niktimvo />} />
         <Route path="/kevzara" element={<Kevzara />} />
+        <Route path="/lepal" element={<Lepal />} />
       </Routes>
     </BrowserRouter>
   )
