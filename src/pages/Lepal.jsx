@@ -58,7 +58,7 @@ function SectionNav() {
     <>
       <div
         aria-hidden={!shown}
-        className={`pointer-events-none fixed left-6 top-1/2 z-40 hidden w-[286px] -translate-y-1/2 space-y-3 text-left text-[15px] leading-[1.55] text-neutral-600 transition-opacity duration-500 xl:block ${
+        className={`pointer-events-none fixed left-6 top-1/2 z-40 hidden w-[clamp(200px,25vw,430px)] -translate-y-1/2 space-y-3 text-left text-[15px] leading-[1.55] text-neutral-600 transition-opacity duration-500 md:block ${
           shown ? 'opacity-100' : 'opacity-0'
         }`}
       >
@@ -77,7 +77,7 @@ function SectionNav() {
           comforting, personal, and genuinely fun.
         </p>
       </div>
-      <div className="fixed bottom-8 left-6 z-40 hidden items-end gap-[40px] xl:flex">
+      <div className="fixed bottom-8 left-6 z-40 hidden items-end gap-[40px] md:flex">
         <img src={productImg} alt="NY Product Design Awards" className="h-16 w-auto" />
         <img src={museImg} alt="MUSE Design Awards" className="h-16 w-auto" />
       </div>

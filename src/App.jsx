@@ -10,6 +10,8 @@ import Jakafi from './pages/Jakafi'
 import Niktimvo from './pages/Niktimvo'
 import Kevzara from './pages/Kevzara'
 import Lepal from './pages/Lepal'
+import NewProject from './pages/NewProject'
+import NewProject2 from './pages/NewProject2'
 import CustomCursor from './components/CustomCursor'
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
         <Route path="/niktimvo" element={<Niktimvo />} />
         <Route path="/kevzara" element={<Kevzara />} />
         <Route path="/lepal" element={<Lepal />} />
+        <Route path="/new-project" element={<NewProject />} />
+        <Route path="/new-project-2" element={<NewProject2 />} />
       </Routes>
     </BrowserRouter>
   )

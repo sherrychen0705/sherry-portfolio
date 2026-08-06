@@ -5,6 +5,8 @@ import workHiveai from '../assets/home/work-hiveai.jpg'
 import workLepal from '../assets/home/work-lepal.jpg'
 import workSkinlab from '../assets/home/work-skinlab.jpg'
 import workGlobbbe from '../assets/home/work-globbbe.jpg'
+import hiveRebrandCover from '../assets/home/hiverebrandcover.png'
+import hayCover from '../assets/hay/14.png'
 import workOmnicom from '../assets/home/work-omnicom.png'
 import icon1 from '../assets/home/gallery/icon1.png'
 import icon2 from '../assets/home/gallery/icon2.png'
@@ -26,15 +28,17 @@ import Footer from '../components/Footer'
 
 const filterTags = ['Healthcare Digital Experience', 'UX', 'Visual']
 
-// 新排版：浅灰底盒子内嵌封面图。顺序在 2 列网格里排成
-// OMNICOM|NEXUS / HIVE|SKINLAB / LEPAL|GLOBBBE
+// 新排版：浅灰底盒子内嵌封面图（所有封面统一 6/5 比例，盒子长宽完全一致）。
+// 顺序：hive rebranding, Lepal, HAY, 然后其它项目依次
 const newCovers = [
-  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '00', link: '/omnicom-entry', cats: ['Healthcare Digital Experience', 'Visual'], imgAspect: '6 / 5' },
-  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '01', link: '/nexus', cats: ['Healthcare Digital Experience', 'UX'], imgAspect: '6 / 5' },
-  { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '02', link: '/hiveai', cats: ['UX'] },
-  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '03', link: '/lepal', cats: ['Visual'] },
-  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '04', link: '/skinlab', cats: ['UX'] },
-  { img: workGlobbbe, title: 'GLOBBBE', category: 'UX Design · Game Design', num: '05', link: '/globbbe', cats: ['UX', 'Visual'] },
+  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '00', link: '/new-project', cats: [], imgAspect: '6 / 5' },
+  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '01', link: '/lepal', cats: ['Visual'], imgAspect: '6 / 5' },
+  { img: hayCover, title: 'HAY - hygge line', category: 'Product Design · Branding', num: '02', link: '/new-project-2', cats: [], imgAspect: '6 / 5' },
+  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '03', link: '/omnicom-entry', cats: ['Healthcare Digital Experience', 'Visual'], imgAspect: '6 / 5' },
+  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '04', link: '/nexus', cats: ['Healthcare Digital Experience', 'UX'], imgAspect: '6 / 5' },
+  { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '05', link: '/hiveai', cats: ['UX'], imgAspect: '6 / 5' },
+  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '06', link: '/skinlab', cats: ['UX'], imgAspect: '6 / 5' },
+  { img: workGlobbbe, title: 'GLOBBBE', category: 'UX Design · Game Design', num: '07', link: '/globbbe', cats: ['UX', 'Visual'], imgAspect: '6 / 5' },
 ]
 
 const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
@@ -131,22 +135,36 @@ function WorkShowcaseNew({ activeFilter }) {
             <Wrapper {...wrapperProps} onMouseEnter={playBeep} className="group block">
               {/* 顶部细线 + 标题/分类（左） + 编号（右） */}
               <div className="flex items-start justify-between border-t border-[#BEBEBE] pt-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-black">{c.title}</h3>
-                  <p className="mt-0.5 text-sm text-neutral-400">{c.category}</p>
-                </div>
+                {c.placeholder ? (
+                  <div className="space-y-1.5">
+                    <div className="h-3.5 w-28 rounded bg-neutral-200" />
+                    <div className="h-3 w-40 rounded bg-neutral-200" />
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="text-sm font-semibold text-black">{c.title}</h3>
+                    <p className="mt-0.5 text-sm text-neutral-400">{c.category}</p>
+                  </div>
+                )}
                 <span className="text-sm text-neutral-400">{c.num}</span>
               </div>
               {/* 白底盒子：比例随封面图，图片放大填充（约 1.7×） */}
               <div className="mt-4 overflow-hidden rounded-[3px] bg-white p-3 md:p-4">
-                <img
-                  src={c.img}
-                  alt={c.title}
-                  style={c.imgAspect ? { aspectRatio: c.imgAspect } : undefined}
-                  className={`block w-full rounded-[2px] object-cover shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out ${
-                    c.link ? 'group-hover:scale-[1.02]' : ''
-                  }`}
-                />
+                {c.placeholder ? (
+                  <div
+                    style={{ aspectRatio: c.imgAspect || '6 / 5' }}
+                    className="block w-full rounded-[2px] bg-neutral-200"
+                  />
+                ) : (
+                  <img
+                    src={c.img}
+                    alt={c.title}
+                    style={c.imgAspect ? { aspectRatio: c.imgAspect } : undefined}
+                    className={`block w-full rounded-[2px] object-cover shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out ${
+                      c.link ? 'group-hover:scale-[1.02]' : ''
+                    }`}
+                  />
+                )}
               </div>
             </Wrapper>
           </Reveal>

@@ -28,12 +28,28 @@ body {
    the way out to an 85px right gap (drop the centered max-width so it fills). */
 @media (min-width: 1440px) {
   .nexus-page .container-fluid,
-  .hiveai-page .container-fluid,
-  .lepal-page .container-fluid {
+  .hiveai-page .container-fluid {
     max-width: none;
     margin-inline: 0;
     padding-left: calc((100vw - clamp(36rem, 88vw, 96rem)) / 2 + clamp(1.5rem, 11vw, 12rem));
     padding-right: 85px;
+  }
+}
+
+/* Lepal / new-project：左侧文字栏从 iPad(768px) 起就一直显示，内容整体右移避让（响应式）。
+   左移量 = 左栏(左 24px + 宽 clamp(200,30vw,430)) + 123px 间距；≥1440px 时正好回到原来的 577px。 */
+@media (min-width: 768px) {
+  .lepal-page .container-fluid,
+  .new-project-page .container-fluid {
+    max-width: none;
+    margin-inline: 0;
+    padding-left: calc(24px + clamp(200px, 25vw, 430px) + clamp(24px, 4.25vw, 61.5px));
+    padding-right: 85px;
+  }
+  /* 导航栏不吃左移：Home 回到和其它项目一致的正常最左位置 */
+  .lepal-page nav.container-fluid,
+  .new-project-page nav.container-fluid {
+    padding-left: calc((100vw - clamp(36rem, 88vw, 96rem)) / 2 + clamp(1.5rem, 11vw, 12rem));
   }
 }
 
