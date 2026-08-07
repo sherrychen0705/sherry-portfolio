@@ -7,6 +7,10 @@ import workSkinlab from '../assets/home/work-skinlab.jpg'
 import workGlobbbe from '../assets/home/work-globbbe.jpg'
 import hiveRebrandCover from '../assets/home/hiverebrandcover.png'
 import hayCover from '../assets/hay/14.png'
+import primusVid1 from '../assets/primus/1.mp4'
+import primusImg31 from '../assets/primus/3.1.png'
+import primusImg12 from '../assets/primus/12.png'
+import primusImg18 from '../assets/primus/18.png'
 import workOmnicom from '../assets/home/work-omnicom.png'
 import icon1 from '../assets/home/gallery/icon1.png'
 import icon2 from '../assets/home/gallery/icon2.png'
@@ -28,17 +32,18 @@ import Footer from '../components/Footer'
 
 const filterTags = ['Healthcare Digital Experience', 'UX', 'Visual']
 
-// 新排版：浅灰底盒子内嵌封面图（所有封面统一 6/5 比例，盒子长宽完全一致）。
-// 顺序：hive rebranding, Lepal, HAY, 然后其它项目依次
+// 主页项目卡片（所有封面统一 6/5 比例，盒子长宽一致）。
+// 顺序：Primus, HIVE rebranding, HAY, Lepal, OMNICOM, HIVE, NEXUS, SKINLAB
+// 注：GLOBBBE 暂不在主页展示，但保留其 import(workGlobbbe)/路由(/globbbe)/资源，之后可能再用。
 const newCovers = [
-  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '00', link: '/new-project', cats: [], imgAspect: '6 / 5' },
-  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '01', link: '/lepal', cats: ['Visual'], imgAspect: '6 / 5' },
+  { slideshow: true, title: 'Primus 2.0', category: 'Branding', num: '00', link: '/new-project-3', cats: [], imgAspect: '6 / 5' },
+  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '01', link: '/new-project', cats: [], imgAspect: '6 / 5' },
   { img: hayCover, title: 'HAY - hygge line', category: 'Product Design · Branding', num: '02', link: '/new-project-2', cats: [], imgAspect: '6 / 5' },
-  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '03', link: '/omnicom-entry', cats: ['Healthcare Digital Experience', 'Visual'], imgAspect: '6 / 5' },
-  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '04', link: '/nexus', cats: ['Healthcare Digital Experience', 'UX'], imgAspect: '6 / 5' },
+  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '03', link: '/lepal', cats: ['Visual'], imgAspect: '6 / 5' },
+  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '04', link: '/omnicom-entry', cats: ['Healthcare Digital Experience', 'Visual'], imgAspect: '6 / 5' },
   { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '05', link: '/hiveai', cats: ['UX'], imgAspect: '6 / 5' },
-  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '06', link: '/skinlab', cats: ['UX'], imgAspect: '6 / 5' },
-  { img: workGlobbbe, title: 'GLOBBBE', category: 'UX Design · Game Design', num: '07', link: '/globbbe', cats: ['UX', 'Visual'], imgAspect: '6 / 5' },
+  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '06', link: '/nexus', cats: ['Healthcare Digital Experience', 'UX'], imgAspect: '6 / 5' },
+  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '07', link: '/skinlab', cats: ['UX'], imgAspect: '6 / 5' },
 ]
 
 const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
@@ -123,6 +128,39 @@ function playBeep() {
   }
 }
 
+// primus 封面：循环 3.1.png(1s) → 12.png(1s) → 18.png(1s) → 1.mp4(播完) → 回到第一张
+const primusSeq = [
+  { type: 'img', src: primusImg31 },
+  { type: 'img', src: primusImg12 },
+  { type: 'img', src: primusImg18 },
+  { type: 'video', src: primusVid1 },
+]
+function SlideshowCover() {
+  const [i, setI] = useState(0)
+  const [cycle, setCycle] = useState(0) // 每轮回到视频时 +1，用于强制视频重播
+  const cur = primusSeq[i]
+  const advance = () =>
+    setI((prev) => {
+      const next = (prev + 1) % primusSeq.length
+      if (next === 0) setCycle((c) => c + 1)
+      return next
+    })
+  useEffect(() => {
+    if (cur.type !== 'img') return // 视频靠 onEnded 推进；图片停 1 秒
+    const t = setTimeout(advance, 1000)
+    return () => clearTimeout(t)
+  }, [i, cycle])
+  // 与其它封面图完全相同的尺寸/样式（6/5、object-cover、白底盒内）
+  const cls =
+    'block w-full rounded-[2px] object-cover shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out group-hover:scale-[1.02]'
+  const style = { aspectRatio: '6 / 5' }
+  return cur.type === 'video' ? (
+    <video key={`v${cycle}`} src={cur.src} autoPlay muted playsInline onEnded={advance} style={style} className={cls} />
+  ) : (
+    <img src={cur.src} alt="" style={style} className={cls} />
+  )
+}
+
 function WorkShowcaseNew({ activeFilter }) {
   const covers = activeFilter ? newCovers.filter((c) => c.cats.includes(activeFilter)) : newCovers
   return (
@@ -150,7 +188,9 @@ function WorkShowcaseNew({ activeFilter }) {
               </div>
               {/* 白底盒子：比例随封面图，图片放大填充（约 1.7×） */}
               <div className="mt-4 overflow-hidden rounded-[3px] bg-white p-3 md:p-4">
-                {c.placeholder ? (
+                {c.slideshow ? (
+                  <SlideshowCover />
+                ) : c.placeholder ? (
                   <div
                     style={{ aspectRatio: c.imgAspect || '6 / 5' }}
                     className="block w-full rounded-[2px] bg-neutral-200"

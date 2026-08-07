@@ -12,6 +12,7 @@ import Kevzara from './pages/Kevzara'
 import Lepal from './pages/Lepal'
 import NewProject from './pages/NewProject'
 import NewProject2 from './pages/NewProject2'
+import NewProject3 from './pages/NewProject3'
 import CustomCursor from './components/CustomCursor'
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Route path="/lepal" element={<Lepal />} />
         <Route path="/new-project" element={<NewProject />} />
         <Route path="/new-project-2" element={<NewProject2 />} />
+        <Route path="/new-project-3" element={<NewProject3 />} />
       </Routes>
     </BrowserRouter>
   )
