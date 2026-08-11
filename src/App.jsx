@@ -22,7 +22,9 @@ function App() {
       <LoadingScreen />
       <CustomCursor />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home key="home" />} />
+        <Route path="/product" element={<Home key="home-product" defaultFilter="Product" />} />
+        <Route path="/branding" element={<Home key="home-branding" defaultFilter="Branding" />} />
         <Route path="/aboutme" element={<AboutMe />} />
         <Route path="/hiveai" element={<HiveAi />} />
         <Route path="/nexus" element={<Nexus />} />

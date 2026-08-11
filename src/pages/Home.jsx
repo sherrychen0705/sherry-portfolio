@@ -30,20 +30,20 @@ import Reveal from '../components/Reveal'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 
-const filterTags = ['Healthcare Digital Experience', 'UX', 'Visual']
+const filterTags = ['Branding', 'Product']
 
 // 主页项目卡片（所有封面统一 6/5 比例，盒子长宽一致）。
 // 顺序：Primus, HIVE rebranding, HAY, Lepal, OMNICOM, HIVE, NEXUS, SKINLAB
 // 注：GLOBBBE 暂不在主页展示，但保留其 import(workGlobbbe)/路由(/globbbe)/资源，之后可能再用。
 const newCovers = [
-  { slideshow: true, title: 'Primus 2.0', category: 'Branding', num: '00', link: '/new-project-3', cats: [], imgAspect: '6 / 5' },
-  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '01', link: '/new-project', cats: [], imgAspect: '6 / 5' },
-  { img: hayCover, title: 'HAY - hygge line', category: 'Product Design · Branding', num: '02', link: '/new-project-2', cats: [], imgAspect: '6 / 5' },
-  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '03', link: '/lepal', cats: ['Visual'], imgAspect: '6 / 5' },
-  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '04', link: '/omnicom-entry', cats: ['Healthcare Digital Experience', 'Visual'], imgAspect: '6 / 5' },
-  { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '05', link: '/hiveai', cats: ['UX'], imgAspect: '6 / 5' },
-  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '06', link: '/nexus', cats: ['Healthcare Digital Experience', 'UX'], imgAspect: '6 / 5' },
-  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '07', link: '/skinlab', cats: ['UX'], imgAspect: '6 / 5' },
+  { slideshow: true, title: 'Primus 2.0', category: 'Branding', num: '00', link: '/new-project-3', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '01', link: '/new-project', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: hayCover, title: 'HAY - hygge line', category: 'Product Design · Branding', num: '02', link: '/new-project-2', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '03', link: '/lepal', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '04', link: '/omnicom-entry', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '05', link: '/hiveai', cats: ['Product'], imgAspect: '6 / 5' },
+  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '06', link: '/nexus', cats: ['Product'], imgAspect: '6 / 5' },
+  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '07', link: '/skinlab', cats: ['Product'], imgAspect: '6 / 5' },
 ]
 
 const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
@@ -243,11 +243,23 @@ function WorkShowcase({ activeFilter, setActiveFilter }) {
       <div className="container-fluid mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-left">
         <RotatingSquare />
         <span className="text-sm text-neutral-500">Filter by:</span>
-        {filterTags.map((tag, i) => {
+        {/* All：显示全部（Branding + UX），activeFilter 为 null 时高亮；huiyangcreates 直接打开即此视图 */}
+        <button
+          type="button"
+          onClick={() => setActiveFilter(null)}
+          className={`text-sm transition-colors ${
+            activeFilter === null
+              ? 'font-bold text-[#5db83c]'
+              : 'font-normal text-neutral-400 hover:text-black'
+          }`}
+        >
+          All
+        </button>
+        {filterTags.map((tag) => {
           const isActive = activeFilter === tag
           return (
             <Fragment key={tag}>
-              {i > 0 && <span className="text-sm text-neutral-300">/</span>}
+              <span className="text-sm text-neutral-300">/</span>
               <button
                 type="button"
                 onClick={() => setActiveFilter(isActive ? null : tag)}
@@ -323,8 +335,9 @@ function CreativeDesk() {
   )
 }
 
-function Home() {
-  const [activeFilter, setActiveFilter] = useState(null)
+function Home({ defaultFilter = null }) {
+  // defaultFilter 由路由传入（/product → 'Product'，/branding → 'Branding'），进页面即预选该 tag
+  const [activeFilter, setActiveFilter] = useState(defaultFilter)
   return (
     <div className="min-h-screen bg-white">
       <NavBar fixed />
