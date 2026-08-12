@@ -11,6 +11,12 @@ import primusVid1 from '../assets/primus/1.mp4'
 import primusImg31 from '../assets/primus/3.1.png'
 import primusImg12 from '../assets/primus/12.png'
 import primusImg18 from '../assets/primus/18.png'
+import heartieCover from '../assets/heartie/cover.png'
+import heartieWatch from '../assets/heartie/watch.png'
+import heartieAd1 from '../assets/heartie/ad1.png'
+import heartieMerch1 from '../assets/heartie/merch1.png'
+import heartieIpad1 from '../assets/heartie/ipad1.png'
+import heartieIpad2 from '../assets/heartie/ipad2.png'
 import workOmnicom from '../assets/home/work-omnicom.png'
 import icon1 from '../assets/home/gallery/icon1.png'
 import icon2 from '../assets/home/gallery/icon2.png'
@@ -30,20 +36,26 @@ import Reveal from '../components/Reveal'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 
-const filterTags = ['Branding', 'Product']
+// value=内部过滤值/路由（不变），label=按钮显示文字
+const filterTags = [
+  { value: 'Branding', label: 'Visual · Branding' },
+  { value: 'Product', label: 'UXUI Product' },
+]
 
 // 主页项目卡片（所有封面统一 6/5 比例，盒子长宽一致）。
-// 顺序：Primus, HIVE rebranding, HAY, Lepal, OMNICOM, HIVE, NEXUS, SKINLAB
+// 主数组=All 顺序。Branding/Product 视图 = 按此顺序过滤 cats 得到，正好符合各自要求。
+// All: NEXUS, HIVE, Primus, HIVE.ai Branding, Heartie, HAY, OMNICOM, LEPAL, SKINLAB
 // 注：GLOBBBE 暂不在主页展示，但保留其 import(workGlobbbe)/路由(/globbbe)/资源，之后可能再用。
 const newCovers = [
-  { slideshow: true, title: 'Primus 2.0', category: 'Branding', num: '00', link: '/new-project-3', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '01', link: '/new-project', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: hayCover, title: 'HAY - hygge line', category: 'Product Design · Branding', num: '02', link: '/new-project-2', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '03', link: '/lepal', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '04', link: '/omnicom-entry', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '05', link: '/hiveai', cats: ['Product'], imgAspect: '6 / 5' },
-  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '06', link: '/nexus', cats: ['Product'], imgAspect: '6 / 5' },
-  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '07', link: '/skinlab', cats: ['Product'], imgAspect: '6 / 5' },
+  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '00', link: '/nexus', cats: ['Product'], imgAspect: '6 / 5' },
+  { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '01', link: '/hiveai', cats: ['Product'], imgAspect: '6 / 5' },
+  { slideshow: 'primus', title: 'Primus 2.0', category: 'Branding', num: '02', link: '/new-project-3', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '03', link: '/new-project', cats: ['Branding'], imgAspect: '6 / 5' },
+  { slideshow: 'heartie', title: 'HEARTIE', category: 'Interaction Design · Brand Design', num: '04', link: '/new-project-4', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: hayCover, title: 'HAY - hygge line', category: 'Product Design · Branding', num: '05', link: '/new-project-2', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '06', link: '/omnicom-entry', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '07', link: '/lepal', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '08', link: '/skinlab', cats: ['Product'], imgAspect: '6 / 5' },
 ]
 
 const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
@@ -128,20 +140,30 @@ function playBeep() {
   }
 }
 
-// primus 封面：循环 3.1.png(1s) → 12.png(1s) → 18.png(1s) → 1.mp4(播完) → 回到第一张
+// 封面轮播：图片各停 1 秒，视频完整播完，每轮回到起点时强制视频重播
 const primusSeq = [
   { type: 'img', src: primusImg31 },
   { type: 'img', src: primusImg12 },
   { type: 'img', src: primusImg18 },
   { type: 'video', src: primusVid1 },
 ]
-function SlideshowCover() {
+// heartie 封面：cover → watch → ad1 → merch1（各 1 秒）→ Chef1 视频（播完）→ 循环
+const heartieSeq = [
+  { type: 'img', src: heartieIpad2 },
+  { type: 'img', src: heartieCover },
+  { type: 'img', src: heartieWatch, fit: 'contain' }, // watch 完整显示、不裁切
+  { type: 'img', src: heartieIpad1 },
+  { type: 'img', src: heartieAd1 },
+  { type: 'img', src: heartieMerch1 },
+]
+const slideshowSeqs = { primus: primusSeq, heartie: heartieSeq }
+function SlideshowCover({ seq }) {
   const [i, setI] = useState(0)
-  const [cycle, setCycle] = useState(0) // 每轮回到视频时 +1，用于强制视频重播
-  const cur = primusSeq[i]
+  const [cycle, setCycle] = useState(0) // 每轮回到起点时 +1，用于强制视频重播
+  const cur = seq[i]
   const advance = () =>
     setI((prev) => {
-      const next = (prev + 1) % primusSeq.length
+      const next = (prev + 1) % seq.length
       if (next === 0) setCycle((c) => c + 1)
       return next
     })
@@ -151,8 +173,9 @@ function SlideshowCover() {
     return () => clearTimeout(t)
   }, [i, cycle])
   // 与其它封面图完全相同的尺寸/样式（6/5、object-cover、白底盒内）
-  const cls =
-    'block w-full rounded-[2px] object-cover shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out group-hover:scale-[1.02]'
+  const cls = `block w-full rounded-[2px] ${
+    cur.fit === 'contain' ? 'object-contain' : 'object-cover'
+  } shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out group-hover:scale-[1.02]`
   const style = { aspectRatio: '6 / 5' }
   return cur.type === 'video' ? (
     <video key={`v${cycle}`} src={cur.src} autoPlay muted playsInline onEnded={advance} style={style} className={cls} />
@@ -189,7 +212,7 @@ function WorkShowcaseNew({ activeFilter }) {
               {/* 白底盒子：比例随封面图，图片放大填充（约 1.7×） */}
               <div className="mt-4 overflow-hidden rounded-[3px] bg-white p-3 md:p-4">
                 {c.slideshow ? (
-                  <SlideshowCover />
+                  <SlideshowCover seq={slideshowSeqs[c.slideshow]} />
                 ) : c.placeholder ? (
                   <div
                     style={{ aspectRatio: c.imgAspect || '6 / 5' }}
@@ -256,20 +279,20 @@ function WorkShowcase({ activeFilter, setActiveFilter }) {
           All
         </button>
         {filterTags.map((tag) => {
-          const isActive = activeFilter === tag
+          const isActive = activeFilter === tag.value
           return (
-            <Fragment key={tag}>
+            <Fragment key={tag.value}>
               <span className="text-sm text-neutral-300">/</span>
               <button
                 type="button"
-                onClick={() => setActiveFilter(isActive ? null : tag)}
+                onClick={() => setActiveFilter(isActive ? null : tag.value)}
                 className={`text-sm transition-colors ${
                   isActive
                     ? 'font-bold text-[#5db83c]'
                     : 'font-normal text-neutral-400 hover:text-black'
                 }`}
               >
-                {tag}
+                {tag.label}
               </button>
             </Fragment>
           )

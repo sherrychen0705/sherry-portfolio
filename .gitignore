@@ -25,3 +25,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# heartie 未使用的 .mov 源文件(app 只用 .mp4)
+src/assets/heartie/*.mov

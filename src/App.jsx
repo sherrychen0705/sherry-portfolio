@@ -13,6 +13,7 @@ import Lepal from './pages/Lepal'
 import NewProject from './pages/NewProject'
 import NewProject2 from './pages/NewProject2'
 import NewProject3 from './pages/NewProject3'
+import NewProject4 from './pages/NewProject4'
 import CustomCursor from './components/CustomCursor'
 import LoadingScreen from './components/LoadingScreen'
 
@@ -38,6 +39,7 @@ function App() {
         <Route path="/new-project" element={<NewProject />} />
         <Route path="/new-project-2" element={<NewProject2 />} />
         <Route path="/new-project-3" element={<NewProject3 />} />
+        <Route path="/new-project-4" element={<NewProject4 />} />
       </Routes>
     </BrowserRouter>
   )
