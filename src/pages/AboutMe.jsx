@@ -1,9 +1,5 @@
-import fan1 from '../assets/about/fan1.jpg'
-import fan2 from '../assets/about/fan2.jpg'
-import fan3 from '../assets/about/fan3.jpg'
-import fan4 from '../assets/about/fan4.jpg'
+import { useEffect, useState } from 'react'
 import fan5 from '../assets/about/fan5.jpg'
-import fan6 from '../assets/about/fan6.jpg'
 import awardsGrid from '../assets/about/awards-grid.png'
 import internHero from '../assets/about/intern-hero.jpg'
 import laptopGroup from '../assets/about/laptop-group.jpg'
@@ -13,28 +9,55 @@ import Footer from '../components/Footer'
 import Reveal from '../components/Reveal'
 import Carousel from '../components/Carousel'
 
-const fanPhotos = [
-  { src: fan1, rotate: '-rotate-6' },
-  { src: fan2, rotate: '-rotate-3' },
-  { src: fan3, rotate: 'rotate-0' },
-  { src: fan4, rotate: 'rotate-2' },
-  { src: fan5, rotate: 'rotate-4' },
-  { src: fan6, rotate: 'rotate-6' },
+// 5 张灰色带编号占位卡簇拥成一团：1、2 横向在上，3、4、5 在下。
+// 入场时依次从中心（背后）冒出、放大到各自位置，最后聚成一团。
+const clusterCards = [
+  { n: 1, size: 'h-40 w-56', x: 0, y: 0, r: -8 },
+  { n: 2, size: 'h-40 w-56', x: 214, y: 22, r: 7 },
+  { n: 3, size: 'h-52 w-40', x: 22, y: 176, r: -7 },
+  { n: 4, size: 'h-52 w-40', x: 166, y: 208, r: 4 },
+  { n: 5, size: 'h-52 w-40', x: 300, y: 182, r: -3 },
 ]
 
-function PhotoFan() {
+function PhotoCluster({ animate = true }) {
+  const [shown, setShown] = useState(!animate)
+  useEffect(() => {
+    if (!animate) return
+    const t = setTimeout(() => setShown(true), 120)
+    return () => clearTimeout(t)
+  }, [animate])
   return (
-    <div className="mt-16 flex justify-center pb-6">
-      <div className="flex -space-x-8">
-        {fanPhotos.map((p, i) => (
-          <img
-            key={i}
-            src={p.src}
-            alt=""
-            className={`h-48 w-36 flex-none rounded-xl border-2 border-neutral-200 object-cover shadow-xl transition-all duration-300 ease-out ${p.rotate} hover:rotate-0 hover:scale-110 hover:z-10 hover:-translate-y-3`}
-          />
-        ))}
+    <div className="relative h-[430px] w-[476px] flex-none">
+      {clusterCards.map((c, i) => (
+        <div
+          key={c.n}
+          className={`absolute left-0 top-0 flex items-center justify-center rounded-[15px] bg-neutral-200 shadow-xl ${c.size}`}
+          style={{
+            transform: shown
+              ? `translate(${c.x}px, ${c.y}px) rotate(${c.r}deg) scale(1)`
+              : 'translate(180px, 130px) rotate(0deg) scale(0.35)',
+            opacity: shown ? 1 : 0,
+            transition: 'transform 750ms cubic-bezier(0.34, 1.35, 0.5, 1), opacity 450ms ease',
+            transitionDelay: `${i * 150}ms`,
+            zIndex: i,
+          }}
+        >
+          <span className="text-2xl font-semibold text-neutral-400">{c.n}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// 深色统计卡（照参考图）
+function StatCard({ num, label, dot }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#141414] px-6 py-8 text-center">
+      <div className="flex items-center justify-center gap-3">
+        <span className="text-5xl font-light text-white">{num}</span>
+        {dot && <span className="h-2.5 w-2.5 rounded-full bg-neutral-500" />}
       </div>
+      <p className="mt-2 text-sm text-neutral-400">{label}</p>
     </div>
   )
 }
@@ -44,20 +67,58 @@ function AboutMe() {
     <div className="min-h-screen bg-white">
       <NavBar />
 
-      <header className="container-fluid pt-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-black">Hey again 😎</h1>
-        <p className="mt-6 text-neutral-600 max-w-2xl mx-auto">
-          I'm no stranger to design. I've worked at enterprise-level corporations, mid-sized design
-          agencies, and fast-growing unicorn startups, tackling projects across UX, visual art, video
-          editing, 3D prototyping, and marketing. While I'm now pursuing a career in UX/UI, my past
-          experiences have equipped me with a range of transferable skills that shape the designer I am
-          today.
-        </p>
+      <header className="container-fluid flex min-h-[calc(100vh-72px)] items-center">
+        <div className="flex w-full flex-col items-center justify-center gap-y-24 md:flex-row md:items-center md:gap-x-[100px]">
+          <PhotoCluster />
+          <div className="max-w-xl text-center md:text-left">
+            <h1 className="text-[22px] font-normal text-neutral-700">Hey again 😎</h1>
+            <p className="mt-6 text-[18px] text-neutral-600">
+              I'm no stranger to design. I've worked at enterprise-level corporations, mid-sized design
+              agencies, and fast-growing unicorn startups, tackling projects across UX, visual art,
+              video editing, 3D prototyping, and marketing. While I'm now pursuing a career in UX/UI, my
+              past experiences have equipped me with a range of transferable skills that shape the
+              designer I am today.
+            </p>
+            <p className="mt-12 text-[18px] text-neutral-600">Outside of work, I'm a fine artist.</p>
+          </div>
+        </div>
       </header>
 
-      <Reveal>
-        <PhotoFan />
-      </Reveal>
+      {/* Experience Snapshot —— 左侧同样 5 张占位卡，右侧内容与 Hey again 文字左对齐 */}
+      <section className="container-fluid mt-6">
+        <div className="flex flex-col gap-y-12 md:flex-row md:items-start md:gap-x-[100px]">
+          <PhotoCluster animate={false} />
+          <div className="min-w-0 flex-1 text-left">
+            <h2 className="text-[22px] font-normal text-neutral-700">Experience Snapshot</h2>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <StatCard num="5" label="Years designing" dot />
+              <StatCard num="6" label="Case studies" />
+              <StatCard num="10" label="Platform design system" />
+            </div>
+            <p className="mt-6 text-[15px] leading-relaxed text-neutral-600">
+              I started as a computer science graduate in India, but I cared more about why the code
+              existed than the code itself, and that pulled me into design. Four years later I design the
+              front end, direct AI agents to build it, and write the checks that catch them when they
+              fake done. I have worked across video, 3D, and product interfaces, and the part I will not
+              hand off is the judgment about what good looks like.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Awards —— 占位 */}
+      <section className="container-fluid mt-16 text-left">
+        <h2 className="text-[22px] font-normal text-neutral-700">Awards</h2>
+        <div className="mt-6 max-w-3xl space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-3.5 rounded bg-neutral-200"
+              style={{ width: i === 3 ? '55%' : '100%' }}
+            />
+          ))}
+        </div>
+      </section>
 
       <h2 className="container-fluid mt-16 text-3xl font-bold text-black text-center">
         On my creative desk …

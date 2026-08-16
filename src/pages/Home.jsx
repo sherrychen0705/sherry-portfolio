@@ -17,6 +17,8 @@ import heartieAd1 from '../assets/heartie/ad1.png'
 import heartieMerch1 from '../assets/heartie/merch1.png'
 import heartieIpad1 from '../assets/heartie/ipad1.png'
 import heartieIpad2 from '../assets/heartie/ipad2.png'
+import heykuraCover from '../assets/heykura/cover.jpg'
+import heykuraVideo from '../assets/heykura/covervideo.mp4'
 import workOmnicom from '../assets/home/work-omnicom.png'
 import icon1 from '../assets/home/gallery/icon1.png'
 import icon2 from '../assets/home/gallery/icon2.png'
@@ -30,7 +32,7 @@ import g6 from '../assets/home/gallery/g6.jpg'
 import g7 from '../assets/home/gallery/g7.jpg'
 import g8 from '../assets/home/gallery/g8.jpg'
 import g9 from '../assets/home/gallery/g9.jpg'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
 import NavBar from '../components/NavBar'
@@ -42,20 +44,28 @@ const filterTags = [
   { value: 'Product', label: 'UXUI Product' },
 ]
 
-// 主页项目卡片（所有封面统一 6/5 比例，盒子长宽一致）。
-// 主数组=All 顺序。Branding/Product 视图 = 按此顺序过滤 cats 得到，正好符合各自要求。
-// All: NEXUS, HIVE, Primus, HIVE.ai Branding, Heartie, HAY, OMNICOM, LEPAL, SKINLAB
+// 每张卡的占位文字（副标题 + hover 展开的项目介绍），之后逐个替换成真实文案。
+const PH_SUB = 'One-line project subtitle placeholder'
+const PH_DESC =
+  'Placeholder project intro that appears on hover. Replace this with the real description — a sentence or two summarizing what the project did and the impact it created.'
+
+// 主页项目卡片：全部统一成玻璃卡结构（ExperimentCard）——封面(6/5) + 标题 + 副标题占位 +（hover 展开的）介绍占位。
+// 主数组=All 顺序。Branding/Product 视图 = 按此顺序过滤 cats 得到。
 // 注：GLOBBBE 暂不在主页展示，但保留其 import(workGlobbbe)/路由(/globbbe)/资源，之后可能再用。
 const newCovers = [
-  { img: workNexus, title: 'NEXUS', category: 'B2B · UX Design', num: '00', link: '/nexus', cats: ['Product'], imgAspect: '6 / 5' },
-  { img: workHiveai, title: 'HIVE', category: 'AI Tool · UX Design', num: '01', link: '/hiveai', cats: ['Product'], imgAspect: '6 / 5' },
-  { slideshow: 'primus', title: 'Primus 2.0', category: 'Branding', num: '02', link: '/new-project-3', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: hiveRebrandCover, title: 'HIVE.ai Branding', category: 'Visual Identity · Brand Design', num: '03', link: '/new-project', cats: ['Branding'], imgAspect: '6 / 5' },
-  { slideshow: 'heartie', title: 'HEARTIE', category: 'Interaction Design · Brand Design', num: '04', link: '/new-project-4', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: hayCover, title: 'HAY - hygge line', category: 'Product Design · Branding', num: '05', link: '/new-project-2', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workOmnicom, title: 'OMNICOM', category: 'Healthcare · Branding', num: '06', link: '/omnicom-entry', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workLepal, title: 'LEPAL', category: 'Visual Design · Product Strategy', num: '07', link: '/lepal', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workSkinlab, title: 'SKINLAB', category: 'UX Research · Design System', num: '08', link: '/skinlab', cats: ['Product'], imgAspect: '6 / 5' },
+  { img: workNexus, title: 'NEXUS', subtitle: PH_SUB, desc: PH_DESC, num: '00', link: '/nexus', cats: ['Product'], imgAspect: '6 / 5' },
+  { img: workHiveai, title: 'HIVE', subtitle: PH_SUB, desc: PH_DESC, num: '01', link: '/hiveai', cats: ['Product'], imgAspect: '6 / 5' },
+  { slideshow: 'primus', title: 'Primus 2.0', subtitle: PH_SUB, desc: PH_DESC, num: '02', link: '/new-project-3', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: hiveRebrandCover, title: 'HIVE.ai Branding', subtitle: PH_SUB, desc: PH_DESC, num: '03', link: '/new-project', cats: ['Branding'], imgAspect: '6 / 5' },
+  { slideshow: 'heartie', title: 'HEARTIE', subtitle: PH_SUB, desc: PH_DESC, num: '04', link: '/new-project-4', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: hayCover, title: 'HAY - hygge line', subtitle: PH_SUB, desc: PH_DESC, num: '05', link: '/new-project-2', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workOmnicom, title: 'OMNICOM', subtitle: PH_SUB, desc: PH_DESC, num: '06', link: '/omnicom-entry', cats: ['Branding'], imgAspect: '6 / 5' },
+  { img: workLepal, title: 'LEPAL', subtitle: PH_SUB, desc: PH_DESC, num: '07', link: '/lepal', cats: ['Branding'], imgAspect: '6 / 5' },
+  // 两张新项目卡（可点进 /new-project-5、/new-project-6）；两个分类下都显示
+  { crossfade: { img: heykuraCover, video: heykuraVideo }, title: 'Heykura.ai', subtitle: PH_SUB, desc: PH_DESC, num: '08', link: '/new-project-5', cats: ['Branding', 'Product'], imgAspect: '6 / 5' },
+  { placeholder: true, title: 'Project Title', subtitle: PH_SUB, desc: PH_DESC, num: '09', link: '/new-project-6', cats: ['Branding', 'Product'], imgAspect: '6 / 5' },
+  // SKINLAB 暂时从主页移除（保留 import workSkinlab / 路由 /skinlab / 页面 Skinlab.jsx，之后可恢复）：
+  // { img: workSkinlab, title: 'SKINLAB', subtitle: PH_SUB, desc: PH_DESC, num: '08', link: '/skinlab', cats: ['Product'], imgAspect: '6 / 5' },
 ]
 
 const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
@@ -184,6 +194,82 @@ function SlideshowCover({ seq }) {
   )
 }
 
+// 封面淡入淡出循环：cover 图停 1.5s → 丝滑淡入视频 → 视频播完 → 停 1.5s → 淡回 cover。视频静音。
+// 尺寸/样式与其它封面完全一致（6/5、object-cover、白底盒内）。
+function CrossfadeCover({ img, video }) {
+  const [showVideo, setShowVideo] = useState(false)
+  const vidRef = useRef(null)
+  useEffect(() => {
+    // 只在显示 cover 图时计时：停 1.5s 后从头播放视频并淡入
+    if (showVideo) return
+    const t = setTimeout(() => {
+      const v = vidRef.current
+      if (v) {
+        v.currentTime = 0
+        v.play().catch(() => {})
+      }
+      setShowVideo(true)
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [showVideo])
+  const base =
+    'absolute inset-0 h-full w-full rounded-[2px] object-cover transition-opacity duration-700 ease-in-out'
+  return (
+    <div
+      className="relative w-full overflow-hidden rounded-[2px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+      style={{ aspectRatio: '6 / 5' }}
+    >
+      <img src={img} alt="" className={`${base} ${showVideo ? 'opacity-0' : 'opacity-100'}`} />
+      <video
+        ref={vidRef}
+        src={video}
+        muted
+        playsInline
+        preload="auto"
+        onEnded={() => setShowVideo(false)}
+        className={`${base} ${showVideo ? 'opacity-100' : 'opacity-0'}`}
+      />
+    </div>
+  )
+}
+
+// 实验卡片（参考 Statsig 卡）：封面 + 标题 + 副标题 +（hover 平滑展开的）灰字项目介绍 + 底部标签。
+// 默认态只显示 标题/副标题/标签；hover 时整卡抬起、白底加阴影，并用 grid-rows 0fr→1fr 展开介绍。
+// group 类在外层 Wrapper(Link) 上，这里用 group-hover 响应。
+function ExperimentCard({ c }) {
+  return (
+    <div className="border border-white/40 bg-white/30 p-2 backdrop-blur-md transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_24px_60px_rgba(0,0,0,0.12)]">
+      {/* 封面（统一 6/5，无圆角）：按类型渲染 视频轮播 / 淡入淡出 / 占位灰盒 / 静态图 */}
+      <div className="overflow-hidden bg-neutral-50/40">
+        {c.crossfade ? (
+          <CrossfadeCover img={c.crossfade.img} video={c.crossfade.video} />
+        ) : c.slideshow ? (
+          <SlideshowCover seq={slideshowSeqs[c.slideshow]} />
+        ) : c.placeholder ? (
+          <div style={{ aspectRatio: c.imgAspect || '6 / 5' }} className="block w-full bg-neutral-200" />
+        ) : (
+          <img
+            src={c.img}
+            alt={c.title}
+            style={{ aspectRatio: c.imgAspect || '6 / 5' }}
+            className="block w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+          />
+        )}
+      </div>
+      {/* 标题 */}
+      <h3 className="mt-5 text-[26px] font-bold leading-tight text-black">{c.title}</h3>
+      {/* 副标题 */}
+      <p className="mt-1.5 text-[15px] text-neutral-500">{c.subtitle}</p>
+      {/* hover 展开的项目介绍（灰字占位）：grid-rows 0fr→1fr 平滑展开高度 */}
+      <div className="grid grid-rows-[0fr] transition-all duration-300 ease-out group-hover:mt-3 group-hover:grid-rows-[1fr]">
+        <div className="overflow-hidden">
+          <p className="text-[15px] leading-relaxed text-neutral-400">{c.desc}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function WorkShowcaseNew({ activeFilter }) {
   const covers = activeFilter ? newCovers.filter((c) => c.cats.includes(activeFilter)) : newCovers
   return (
@@ -192,43 +278,9 @@ function WorkShowcaseNew({ activeFilter }) {
         const Wrapper = c.link ? Link : 'div'
         const wrapperProps = c.link ? { to: c.link } : {}
         return (
-          <Reveal strong key={c.title} delay={(i % 2) * 120} className="text-left">
+          <Reveal strong key={c.num} delay={(i % 2) * 120} className="text-left">
             <Wrapper {...wrapperProps} onMouseEnter={playBeep} className="group block">
-              {/* 顶部细线 + 标题/分类（左） + 编号（右） */}
-              <div className="flex items-start justify-between border-t border-[#BEBEBE] pt-3">
-                {c.placeholder ? (
-                  <div className="space-y-1.5">
-                    <div className="h-3.5 w-28 rounded bg-neutral-200" />
-                    <div className="h-3 w-40 rounded bg-neutral-200" />
-                  </div>
-                ) : (
-                  <div>
-                    <h3 className="text-sm font-semibold text-black">{c.title}</h3>
-                    <p className="mt-0.5 text-sm text-neutral-400">{c.category}</p>
-                  </div>
-                )}
-                <span className="text-sm text-neutral-400">{c.num}</span>
-              </div>
-              {/* 白底盒子：比例随封面图，图片放大填充（约 1.7×） */}
-              <div className="mt-4 overflow-hidden rounded-[3px] bg-white p-3 md:p-4">
-                {c.slideshow ? (
-                  <SlideshowCover seq={slideshowSeqs[c.slideshow]} />
-                ) : c.placeholder ? (
-                  <div
-                    style={{ aspectRatio: c.imgAspect || '6 / 5' }}
-                    className="block w-full rounded-[2px] bg-neutral-200"
-                  />
-                ) : (
-                  <img
-                    src={c.img}
-                    alt={c.title}
-                    style={c.imgAspect ? { aspectRatio: c.imgAspect } : undefined}
-                    className={`block w-full rounded-[2px] object-cover shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out ${
-                      c.link ? 'group-hover:scale-[1.02]' : ''
-                    }`}
-                  />
-                )}
-              </div>
+              <ExperimentCard c={c} />
             </Wrapper>
           </Reveal>
         )

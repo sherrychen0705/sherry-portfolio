@@ -14,6 +14,8 @@ import NewProject from './pages/NewProject'
 import NewProject2 from './pages/NewProject2'
 import NewProject3 from './pages/NewProject3'
 import NewProject4 from './pages/NewProject4'
+import NewProject5 from './pages/NewProject5'
+import NewProject6 from './pages/NewProject6'
 import CustomCursor from './components/CustomCursor'
 import LoadingScreen from './components/LoadingScreen'
 
@@ -40,6 +42,8 @@ function App() {
         <Route path="/new-project-2" element={<NewProject2 />} />
         <Route path="/new-project-3" element={<NewProject3 />} />
         <Route path="/new-project-4" element={<NewProject4 />} />
+        <Route path="/new-project-5" element={<NewProject5 />} />
+        <Route path="/new-project-6" element={<NewProject6 />} />
       </Routes>
     </BrowserRouter>
   )
