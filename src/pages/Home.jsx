@@ -6,6 +6,7 @@ import workLepal from '../assets/home/work-lepal.jpg'
 import workSkinlab from '../assets/home/work-skinlab.jpg'
 import workGlobbbe from '../assets/home/work-globbbe.jpg'
 import hiveRebrandCover from '../assets/home/hiverebrandcover.png'
+import hiveBrandingCover from '../assets/hive-branding/poster1.png'
 import hayCover from '../assets/hay/14.png'
 import primusVid1 from '../assets/primus/1.mp4'
 import primusImg31 from '../assets/primus/3.1.png'
@@ -20,9 +21,11 @@ import heartieIpad2 from '../assets/heartie/ipad2.png'
 import heykuraCover from '../assets/heykura/cover.jpg'
 import heykuraVideo from '../assets/heykura/covervideo.mp4'
 import workOmnicom from '../assets/home/work-omnicom.png'
-import icon1 from '../assets/home/gallery/icon1.png'
-import icon2 from '../assets/home/gallery/icon2.png'
-import icon3 from '../assets/home/gallery/icon3.png'
+import ohdiCover from '../assets/home/OHDI.png'
+import aCover from '../assets/home/a.jpg'
+import bCover from '../assets/home/b.jpg'
+import cCover from '../assets/home/c.jpg'
+import dCover from '../assets/home/d.jpg'
 import g1 from '../assets/home/gallery/g1.jpg'
 import g2 from '../assets/home/gallery/g2.jpg'
 import g3 from '../assets/home/gallery/g3.jpg'
@@ -37,6 +40,7 @@ import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
+import GrassHills from '../components/GrassHills'
 
 // value=内部过滤值/路由（不变），label=按钮显示文字
 const filterTags = [
@@ -53,40 +57,148 @@ const PH_DESC =
 // 主数组=All 顺序。Branding/Product 视图 = 按此顺序过滤 cats 得到。
 // 注：GLOBBBE 暂不在主页展示，但保留其 import(workGlobbbe)/路由(/globbbe)/资源，之后可能再用。
 const newCovers = [
-  { img: workNexus, title: 'NEXUS', subtitle: PH_SUB, desc: PH_DESC, num: '00', link: '/nexus', cats: ['Product'], imgAspect: '6 / 5' },
-  { img: workHiveai, title: 'HIVE', subtitle: PH_SUB, desc: PH_DESC, num: '01', link: '/hiveai', cats: ['Product'], imgAspect: '6 / 5' },
-  { slideshow: 'primus', title: 'Primus 2.0', subtitle: PH_SUB, desc: PH_DESC, num: '02', link: '/new-project-3', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: hiveRebrandCover, title: 'HIVE.ai Branding', subtitle: PH_SUB, desc: PH_DESC, num: '03', link: '/new-project', cats: ['Branding'], imgAspect: '6 / 5' },
-  { slideshow: 'heartie', title: 'HEARTIE', subtitle: PH_SUB, desc: PH_DESC, num: '04', link: '/new-project-4', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: hayCover, title: 'HAY - hygge line', subtitle: PH_SUB, desc: PH_DESC, num: '05', link: '/new-project-2', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workOmnicom, title: 'OMNICOM', subtitle: PH_SUB, desc: PH_DESC, num: '06', link: '/omnicom-entry', cats: ['Branding'], imgAspect: '6 / 5' },
-  { img: workLepal, title: 'LEPAL', subtitle: PH_SUB, desc: PH_DESC, num: '07', link: '/lepal', cats: ['Branding'], imgAspect: '6 / 5' },
-  // 两张新项目卡（可点进 /new-project-5、/new-project-6）；两个分类下都显示
-  { crossfade: { img: heykuraCover, video: heykuraVideo }, title: 'Heykura.ai', subtitle: PH_SUB, desc: PH_DESC, num: '08', link: '/new-project-5', cats: ['Branding', 'Product'], imgAspect: '6 / 5' },
-  { placeholder: true, title: 'Project Title', subtitle: PH_SUB, desc: PH_DESC, num: '09', link: '/new-project-6', cats: ['Branding', 'Product'], imgAspect: '6 / 5' },
+  {
+    img: workNexus,
+    title: 'NEXUS',
+    subtitle: 'Enterprise Platform: end-to-end Speaker Bureau program operations',
+    desc: 'An enterprise-grade, AI-enabled SaaS platform redesigned from IPG Health’s legacy event management system to support end-to-end Healthcare Speaker Bureau program operations.',
+    num: '00',
+    link: '/nexus',
+    cats: ['Product'],
+    imgAspect: '6 / 5',
+  },
+  {
+    img: workHiveai,
+    title: 'HIVE',
+    subtitle: 'AI tool for branching ideas and collecting interconnected thoughts.',
+    desc: 'I led the design of an AI tool that helps researchers and learners bridge information gaps, spark inspiration, and independently explore new ideas.',
+    num: '01',
+    link: '/hiveai',
+    cats: ['Product'],
+    imgAspect: '6 / 5',
+  },
+  {
+    crossfade: { img: heykuraCover, video: heykuraVideo },
+    title: 'Heykura.ai',
+    subtitle: 'An AI-powered visual ideation platform that turns vague prompts into clear creative direction.',
+    desc: 'Created an AI toolbar, prompt iteration flow, and conversational AI panel that supported the December 2025 product launch and helped the platform reach 10,000 weekly users within its first week.',
+    num: '02',
+    link: '/new-project-5',
+    cats: ['Branding', 'Product'],
+    imgAspect: '6 / 5',
+  },
+  {
+    slideshow: 'primus',
+    title: 'Primus 2.0',
+    subtitle: 'Visual identity and concept redesign for Primus',
+    desc: 'Upgraded the brand identity, motion graphics, and digital products for its 2.0 evolution.',
+    num: '03',
+    link: '/new-project-3',
+    cats: ['Branding'],
+    imgAspect: '6 / 5',
+  },
+  {
+    img: ohdiCover,
+    title: 'OHDI.ai, powered by OMNI ✦',
+    subtitle: 'Omnicom’s AI-powered competitive messaging intelligence platform helps pharma teams monitor market shifts.',
+    desc: 'Redesigned two user flows for monitoring competitor narratives and predicting message resonance across HCP audiences and channels.',
+    num: '04',
+    link: '/new-project-6',
+    cats: ['Product'], // OHDI 不属于 Visual Branding，只在 Product/All 里显示
+    imgAspect: '6 / 5',
+  },
+  {
+    img: hiveBrandingCover,
+    title: 'HIVE.ai Branding',
+    subtitle: 'Visual identity and concept redesign for Hive.ai',
+    desc: 'I redesigned the visual concept, motion graphics, and merchandise system to elevate the brand identity.',
+    num: '05',
+    link: '/new-project',
+    cats: ['Branding'],
+    imgAspect: '6 / 5',
+  },
+  {
+    img: workOmnicom,
+    title: 'OMNICOM',
+    subtitle: 'Collection of some of visual creative works at Omnicom Health',
+    desc: 'Collaborated with a 35+ person team, including art directors, account leads and project managers to create digital experiences for clients including Incyte, Sanofi, Pfizer, AstraZeneca and Merck.',
+    num: '06',
+    link: '/omnicom-entry',
+    cats: ['Branding'],
+    imgAspect: '6 / 5',
+  },
+  {
+    slideshow: 'heartie',
+    title: 'HEARTIE',
+    subtitle: 'Product ecosystem designed for children ages 8–14 with heart conditions.',
+    desc: 'I led the interaction design, graphic artwork, and key visual screens to support Heartie’s gamified educational experience for young children.',
+    num: '07',
+    link: '/new-project-4',
+    cats: ['Branding'],
+    imgAspect: '6 / 5',
+  },
+  {
+    img: workLepal,
+    title: 'LEPAL',
+    subtitle: 'AI-powered mental wellness companion app created for GenZ',
+    desc: 'I led Lepal.ai’s visual identity, animation, and micro-interaction design from the ground up, helping the app reach 5,000+ weekly active users and increase subscription renewals by 15% within the first two months.',
+    num: '08',
+    link: '/lepal',
+    cats: ['Branding'],
+    imgAspect: '6 / 5',
+  },
+  {
+    img: hayCover,
+    title: 'HAY - hygge line',
+    subtitle: 'HYGGE product line for HAY',
+    desc: 'I led the proposal for a new HYGGE product line for HAY, featuring four cohesive products that bring more vitality to home goods.',
+    num: '09',
+    link: '/new-project-2',
+    cats: ['Branding'],
+    imgAspect: '6 / 5',
+  },
   // SKINLAB 暂时从主页移除（保留 import workSkinlab / 路由 /skinlab / 页面 Skinlab.jsx，之后可恢复）：
   // { img: workSkinlab, title: 'SKINLAB', subtitle: PH_SUB, desc: PH_DESC, num: '08', link: '/skinlab', cats: ['Product'], imgAspect: '6 / 5' },
 ]
 
-const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
-
-const deskItems = [
+// Hero 山脉上的发光白色方块标记：世界坐标 { x, z }（锚定在地形上，随 pan 一起移动）；
+// 最左那个带 "take a peak" 文字。GrassHills 每帧把这些坐标投影到屏幕。
+const heroMarkers = [
   {
-    icon: icon1,
-    title: 'Design Competition Winner',
-    desc: 'Had a blast creating work that won prestigious international design awards.',
+    x: -30,
+    z: 5,
+    label: true,
+    img: aCover,
+    text: "I’m a self-taught illustrator whose creative passion began with a desire to express meaning through brushstrokes, lines, and objects.",
   },
   {
-    icon: icon2,
-    title: 'Healthcare Creative Designs',
-    desc: 'Creating branding campaigns for pharmaceutical companies + designing SaaS product.',
+    x: -12,
+    z: 18,
+    img: bCover,
+    text: "I studied Product Design at Parsons, where I became comfortable with pin-up critiques and a fast-paced creative environment. Through iterative and systems thinking, I began exploring digital products and branding.",
   },
   {
-    icon: icon3,
-    title: 'Industrial design to UXUX',
-    desc: 'Rooted in product design thinking, I made the leap from industrial design to digital UI/UX design three years ago.',
+    // 下移到前景草地（原 z:-12 在远处浅色山上看不清）
+    x: 3,
+    z: 12,
+    img: cCover,
+    text: "After completing the first year of my MS in HCI at the University of Michigan and working on products for multiple clients, I expanded into a larger creative platform that connected me with bold thinkers across art, product, production, UX architecture, and brand strategy.",
+  },
+  {
+    x: 18,
+    z: 20,
+    img: dCover,
+    text: "Last year, my creative projects reached the international stage, and I’m grateful that my ideas were seen and recognized. I hope to continue connecting with more bold and inspiring minds.",
+  },
+  {
+    // 第五张卡：不放图，只有文字
+    x: 38,
+    z: -8,
+    text: "My creative journey, like this endless stretch of grass, will continue to grow. The story is still unfolding.",
   },
 ]
+
+const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
 
 function Hero() {
   return (
@@ -270,8 +382,18 @@ function ExperimentCard({ c }) {
   )
 }
 
+// 各筛选视图下的显式排序（用 link 作标识）。不影响 All 视图的顺序。
+const filterOrder = {
+  // Visual · Branding: primus → heykura → hive.ai branding → heartie → omnicom → lepal → hay
+  Branding: ['/new-project-3', '/new-project-5', '/new-project', '/new-project-4', '/omnicom-entry', '/lepal', '/new-project-2'],
+}
+
 function WorkShowcaseNew({ activeFilter }) {
-  const covers = activeFilter ? newCovers.filter((c) => c.cats.includes(activeFilter)) : newCovers
+  let covers = activeFilter ? newCovers.filter((c) => c.cats.includes(activeFilter)) : newCovers
+  const order = activeFilter && filterOrder[activeFilter]
+  if (order) {
+    covers = [...covers].sort((a, b) => order.indexOf(a.link) - order.indexOf(b.link))
+  }
   return (
     <section className="container-fluid mt-24 grid grid-cols-1 items-start gap-x-8 gap-y-24 md:grid-cols-2">
       {covers.map((c, i) => {
@@ -388,43 +510,25 @@ function MoreWorks() {
   )
 }
 
-function CreativeDesk() {
-  return (
-    <section className="container-fluid mt-24 text-center">
-      <h2 className="text-[40px] font-medium text-black leading-[1.2] md:text-[60px]">Currently on my creative desk…</h2>
-      <p className="mt-3 text-neutral-500 max-w-2xl mx-auto">
-        Being a design-aholic means the work I've done, and the projects I'm working on now, keep me
-        constantly excited and fulfilled. Design feels more like a passion-fueled hobby than a job. Here
-        are a few snapshots of what's currently on my creative desk.
-      </p>
-      <div className="mt-10 grid md:grid-cols-3 gap-8 text-left">
-        {deskItems.map((d) => (
-          <div key={d.title}>
-            <img src={d.icon} alt="" className="h-12 w-auto mb-4" />
-            <h3 className="text-black font-semibold">{d.title}</h3>
-            <p className="mt-2 text-sm text-neutral-500">{d.desc}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 function Home({ defaultFilter = null }) {
   // defaultFilter 由路由传入（/product → 'Product'，/branding → 'Branding'），进页面即预选该 tag
   const [activeFilter, setActiveFilter] = useState(defaultFilter)
   return (
     <div className="min-h-screen bg-white">
       <NavBar fixed />
-      <div className="h-24" />
-      <Hero />
-      <HeroVideo />
-      <div className="dot-grid mt-24 pb-20">
+      {/* 顶部白→浅绿渐变：intro 文字落在过渡段，向下与山脉天空色 (#eef1ea) 无缝衔接 */}
+      <div style={{ background: 'linear-gradient(to bottom, #ffffff 0%, #ffffff 22%, #eef1ea 100%)' }}>
+        <div className="h-24" />
+        <Hero />
+      </div>
+      {/* Hero 场景：程序化起伏绿地（替换原 exploring-creativity 视频）；高度缩到原来的 95%。
+          发光白色方块标记锚定在地形上（世界坐标），随 pan 一起移动 —— 由 GrassHills 内部投影渲染 */}
+      <GrassHills height="clamp(418px, 78vh, 855px)" className="" markers={heroMarkers} />
+      <div className="dot-grid pb-20">
         <WorkShowcase activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
         <WorkShowcaseNew activeFilter={activeFilter} />
       </div>
       <MoreWorks />
-      <CreativeDesk />
       <Footer light />
     </div>
   )

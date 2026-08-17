@@ -185,3 +185,54 @@ body {
 .word-in {
   animation: wordJump 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* Hero 山脉上的发光白色方块标记 */
+@keyframes marker-glow {
+  0%, 100% {
+    box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.55), 0 0 14px 5px rgba(255, 255, 255, 0.28);
+    opacity: 0.92;
+  }
+  50% {
+    box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.95), 0 0 28px 11px rgba(255, 255, 255, 0.45);
+    opacity: 1;
+  }
+}
+.hero-marker {
+  animation: marker-glow 2.4s ease-in-out infinite;
+}
+
+/* 卡片四周向外扩散的白色小粒子（每颗方向/时长随机，形成无规则发散） */
+@keyframes card-particle {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  12% { opacity: var(--op, 0.7); }
+  50% { transform: translate(var(--mx, 0), var(--my, 0)) scale(1); }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
+}
+
+/* Hero 山脉方块点击后的连接线 + 卡片（cyberpunk 画线感） */
+@keyframes hillcard-line-draw {
+  from { stroke-dashoffset: 1400; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes hillcard-line-flicker {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  14% { opacity: 0.25; }
+  22% { opacity: 1; }
+  40% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+.hillcard-line {
+  animation: hillcard-line-draw 0.5s cubic-bezier(0.22, 1, 0.36, 1) both,
+    hillcard-line-flicker 0.55s steps(1, end) both;
+  filter: drop-shadow(0 0 2px rgba(93, 184, 60, 0.95)) drop-shadow(0 0 6px rgba(93, 184, 60, 0.6));
+}
+@keyframes hillcard-in {
+  0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+  55% { opacity: 1; }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+.hillcard-in {
+  animation: hillcard-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.12s; /* 线先画一点，再出卡片 */
+}
