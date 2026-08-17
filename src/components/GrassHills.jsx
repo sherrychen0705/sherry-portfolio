@@ -340,7 +340,9 @@ function GrassHills({ height = 'clamp(320px, 58vh, 560px)', className = 'mt-24',
         const [msx, msy] = screen[ai]
         let cx = msx + 70, cy = msy - 175 // 卡片放在方块右上方
         cx = Math.max(8, Math.min(cx, w - CARD_W - 8)) // 夹在容器内，任意宽度可见
-        cy = Math.max(8, Math.min(cy, h - CARD_H - 8))
+        // 用卡片真实高度夹取，避免内容变多后底部被容器裁掉（iPad+ 尤其明显）
+        const cardH = cardRef.current.offsetHeight || CARD_H
+        cy = Math.max(8, Math.min(cy, h - cardH - 8))
         cardRef.current.style.transform = `translate(${cx}px, ${cy}px)`
         const conx = cx, cony = cy + 52 // 连到卡片左侧偏上
         const stub = msx <= conx ? 34 : -34 // 从方块先横一小段，再斜线拉到卡片

@@ -395,7 +395,7 @@ function WorkShowcaseNew({ activeFilter }) {
     covers = [...covers].sort((a, b) => order.indexOf(a.link) - order.indexOf(b.link))
   }
   return (
-    <section className="container-fluid mt-24 grid grid-cols-1 items-start gap-x-8 gap-y-24 md:grid-cols-2">
+    <section className="container-fluid mt-10 grid grid-cols-1 items-start gap-x-8 gap-y-24 md:grid-cols-2">
       {covers.map((c, i) => {
         const Wrapper = c.link ? Link : 'div'
         const wrapperProps = c.link ? { to: c.link } : {}
@@ -434,10 +434,8 @@ function RotatingSquare() {
 
 function WorkShowcase({ activeFilter, setActiveFilter }) {
   return (
-    <div>
-      {/* 横跨整个屏幕的灰色横线 */}
-      <div className="border-t border-neutral-300" />
-      <div className="container-fluid mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-left">
+    <div className="pt-8">
+      <div className="container-fluid flex flex-wrap items-center gap-x-4 gap-y-2 text-left">
         <RotatingSquare />
         <span className="text-sm text-neutral-500">Filter by:</span>
         {/* All：显示全部（Branding + UX），activeFilter 为 null 时高亮；huiyangcreates 直接打开即此视图 */}
@@ -510,6 +508,91 @@ function MoreWorks() {
   )
 }
 
+// 深色粒子从上缓缓飘落（接续上方山脉的粒子感）。canvas 铺满父容器，父容器需 relative。
+// 多色深调色板：深绿 / 暗橄榄 / 暗紫，呼应山脉里的深绿点与紫粉小花。
+const FALL_COLORS = ['#26310f', '#31401d', '#3f5228', '#4d6033', '#5f5a2e', '#4f3f66', '#6b4f7a']
+const FALL_BAND_H = 360 // 只在顶部 filter bar 附近这条带里飘
+function FallingParticles() {
+  const ref = useRef(null)
+  useEffect(() => {
+    const canvas = ref.current
+    const parent = canvas?.parentElement
+    if (!canvas || !parent) return
+    const ctx = canvas.getContext('2d')
+    let raf, w, h, dpr, running = true
+    const parts = []
+    const spawn = (anywhere) => ({
+      x: Math.random() * w,
+      y: anywhere ? Math.random() * h : -10,
+      r: 0.6 + Math.random() * 1.5, // 更小
+      vy: 0.12 + Math.random() * 0.42, // 下落速度
+      sway: Math.random() * Math.PI * 2,
+      swayAmp: 0.2 + Math.random() * 0.6, // 水平轻微摇摆
+      op: 0.3 + Math.random() * 0.5, // 更深更明显
+      col: FALL_COLORS[(Math.random() * FALL_COLORS.length) | 0],
+    })
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2)
+      w = parent.offsetWidth
+      h = FALL_BAND_H // 固定为顶部带高度，不铺满整段
+      if (!w || !h) return
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      canvas.style.width = w + 'px'
+      canvas.style.height = h + 'px'
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      const target = Math.min(70, Math.round((w * h) / 13000)) // 带内密度（更稀疏）
+      while (parts.length < target) parts.push(spawn(true))
+      parts.length = Math.min(parts.length, target)
+    }
+    const tick = () => {
+      if (!running) return
+      ctx.clearRect(0, 0, w, h)
+      for (const p of parts) {
+        p.sway += 0.01
+        p.y += p.vy
+        p.x += Math.cos(p.sway) * p.swayAmp * 0.3
+        if (p.y > h + 12) {
+          p.y = -10
+          p.x = Math.random() * w
+        }
+        // 底部 100px 内淡出，避免带子有硬边
+        const a = p.y > h - 100 ? p.op * Math.max(0, (h - p.y) / 100) : p.op
+        ctx.globalAlpha = a
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fillStyle = p.col
+        ctx.fill()
+      }
+      ctx.globalAlpha = 1
+      raf = requestAnimationFrame(tick)
+    }
+    resize()
+    window.addEventListener('resize', resize)
+    const ro = new ResizeObserver(resize)
+    ro.observe(parent)
+    tick()
+    const onVis = () => {
+      if (document.hidden) {
+        running = false
+        cancelAnimationFrame(raf)
+      } else if (!running) {
+        running = true
+        tick()
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      running = false
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', resize)
+      ro.disconnect()
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [])
+  return <canvas ref={ref} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-0" />
+}
+
 function Home({ defaultFilter = null }) {
   // defaultFilter 由路由传入（/product → 'Product'，/branding → 'Branding'），进页面即预选该 tag
   const [activeFilter, setActiveFilter] = useState(defaultFilter)
@@ -523,10 +606,14 @@ function Home({ defaultFilter = null }) {
       </div>
       {/* Hero 场景：程序化起伏绿地（替换原 exploring-creativity 视频）；高度缩到原来的 95%。
           发光白色方块标记锚定在地形上（世界坐标），随 pan 一起移动 —— 由 GrassHills 内部投影渲染 */}
-      <GrassHills height="clamp(418px, 78vh, 855px)" className="" markers={heroMarkers} />
-      <div className="dot-grid pb-20">
-        <WorkShowcase activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
-        <WorkShowcaseNew activeFilter={activeFilter} />
+      <GrassHills height="clamp(355px, 66vh, 727px)" className="" markers={heroMarkers} />
+      <div className="dot-grid pb-20 relative">
+        {/* 深绿粒子从上飘落，接续山脉粒子感 */}
+        <FallingParticles />
+        <div className="relative z-10">
+          <WorkShowcase activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
+          <WorkShowcaseNew activeFilter={activeFilter} />
+        </div>
       </div>
       <MoreWorks />
       <Footer light />
