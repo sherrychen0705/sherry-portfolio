@@ -7,9 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sherry (Huiyang) Chen Design Portfolio</title>
 
-    <!-- Google Analytics (GA4) —— 只在正式线上站统计，localhost 本地开发不算 -->
+    <!-- Google Analytics (GA4) —— 只在正式线上站统计；localhost 与"已屏蔽的浏览器"都不统计。
+         用同一个暗号链接屏蔽自己：?disable-analytics 关闭 / ?enable-analytics 恢复（与 Vercel 共用 va-disable 标记）。 -->
     <script>
-      if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      (function () {
+        var muted = false
+        try {
+          var p = new URLSearchParams(location.search)
+          if (p.has('disable-analytics')) localStorage.setItem('va-disable', '1')
+          if (p.has('enable-analytics')) localStorage.removeItem('va-disable')
+          muted = localStorage.getItem('va-disable') === '1'
+        } catch (e) { /* localStorage 不可用时忽略 */ }
+
+        var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+        if (isLocal || muted) return // 本地 或 已屏蔽 → 不加载 GA
+
         var gaScript = document.createElement('script')
         gaScript.async = true
         gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-N660H1RNRC'
@@ -18,7 +30,7 @@
         function gtag() { dataLayer.push(arguments) }
         gtag('js', new Date())
         gtag('config', 'G-N660H1RNRC')
-      }
+      })()
     </script>
   </head>
   <body>
