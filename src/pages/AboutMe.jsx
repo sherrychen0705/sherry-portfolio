@@ -63,6 +63,23 @@ function StatCard({ num, label, dot }) {
 }
 
 function AboutMe() {
+  // ⚠️ 临时「施工中」占位。恢复真实 About 页：删掉下面这个 return（到 “施工中占位结束” 注释为止）即可。
+  return (
+    <div className="min-h-screen bg-white">
+      <NavBar />
+      <div className="container-fluid flex min-h-[calc(100vh-72px)] flex-col items-center justify-center text-center">
+        <p className="text-6xl">🚧</p>
+        <h1 className="mt-6 text-[28px] font-semibold text-black">This page is under construction</h1>
+        <p className="mt-3 text-neutral-500">
+          The About page is being redesigned — check back soon.
+        </p>
+      </div>
+      <Footer light />
+    </div>
+  )
+  // —— 施工中占位结束；以下为原始 About 页内容，恢复时删掉上面的 return —— // eslint-disable-line no-unreachable
+
+  // eslint-disable-next-line no-unreachable
   return (
     <div className="min-h-screen bg-white">
       <NavBar />
