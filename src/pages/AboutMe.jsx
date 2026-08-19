@@ -1,207 +1,171 @@
-import { useEffect, useState } from 'react'
-import fan5 from '../assets/about/fan5.jpg'
-import awardsGrid from '../assets/about/awards-grid.png'
-import internHero from '../assets/about/intern-hero.jpg'
-import laptopGroup from '../assets/about/laptop-group.jpg'
-import mailIcon from '../assets/about/mail-icon.png'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 import Reveal from '../components/Reveal'
-import Carousel from '../components/Carousel'
+import GrassHills from '../components/GrassHills'
 
-// 5 张灰色带编号占位卡簇拥成一团：1、2 横向在上，3、4、5 在下。
-// 入场时依次从中心（背后）冒出、放大到各自位置，最后聚成一团。
-const clusterCards = [
-  { n: 1, size: 'h-40 w-56', x: 0, y: 0, r: -8 },
-  { n: 2, size: 'h-40 w-56', x: 214, y: 22, r: 7 },
-  { n: 3, size: 'h-52 w-40', x: 22, y: 176, r: -7 },
-  { n: 4, size: 'h-52 w-40', x: 166, y: 208, r: 4 },
-  { n: 5, size: 'h-52 w-40', x: 300, y: 182, r: -3 },
-]
+// —— 图片（全部在 assets/about/） ——
+import gelatoMatcha from '../assets/about/3.JPG'
+import gelatoMooHope from '../assets/about/1.JPG'
+import gelatoPistachio from '../assets/about/2.JPG'
+import tattooWhite from '../assets/about/8.jpg'
+import tattooBlack from '../assets/about/7.jpg'
+import sourdough1 from '../assets/about/5.png'
+import sourdough2 from '../assets/about/6.png'
+import piggies from '../assets/about/4.JPG'
+import pixelPig from '../assets/about/9.gif'
+import teamCafe from '../assets/about/fan4.jpg'
+import teamPair from '../assets/about/fan3.jpg'
+import teamBlue from '../assets/about/laptop-group.jpg'
+import teamGreen from '../assets/about/fan5.jpg'
 
-function PhotoCluster({ animate = true }) {
-  const [shown, setShown] = useState(!animate)
-  useEffect(() => {
-    if (!animate) return
-    const t = setTimeout(() => setShown(true), 120)
-    return () => clearTimeout(t)
-  }, [animate])
+// 倾斜 + 垂直交错(y) + hover 可爱 wiggle 的照片。y<0 上移、y>0 下移，用来做上下错落。
+function Photo({ src, className = '', rotate = 0, y = 0, contain = false, plain = false }) {
   return (
-    <div className="relative h-[430px] w-[476px] flex-none">
-      {clusterCards.map((c, i) => (
-        <div
-          key={c.n}
-          className={`absolute left-0 top-0 flex items-center justify-center rounded-[15px] bg-neutral-200 shadow-xl ${c.size}`}
-          style={{
-            transform: shown
-              ? `translate(${c.x}px, ${c.y}px) rotate(${c.r}deg) scale(1)`
-              : 'translate(180px, 130px) rotate(0deg) scale(0.35)',
-            opacity: shown ? 1 : 0,
-            transition: 'transform 750ms cubic-bezier(0.34, 1.35, 0.5, 1), opacity 450ms ease',
-            transitionDelay: `${i * 150}ms`,
-            zIndex: i,
-          }}
-        >
-          <span className="text-2xl font-semibold text-neutral-400">{c.n}</span>
-        </div>
-      ))}
+    <div
+      className={`about-photo shrink-0 ${className}`}
+      style={{ transform: `translateY(${y}px) rotate(${rotate}deg)` }}
+    >
+      <img
+        src={src}
+        alt=""
+        className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'} ${
+          plain ? '' : 'rounded-[6px] shadow-[0_10px_28px_rgba(0,0,0,0.28)]'
+        }`}
+      />
     </div>
   )
 }
 
-// 深色统计卡（照参考图）
-function StatCard({ num, label, dot }) {
+// 左侧板块标签（20px 白字，不换行）
+function Label({ children }) {
+  return <h2 className="whitespace-nowrap text-[20px] leading-snug text-white">{children}</h2>
+}
+
+// 一行：左标签(可空) + 文字 + 右侧图片簇，底部细线；标签与文字同一行(items-end)，图片在文字上方；
+// 随 scroll 从下往上淡入跳入。
+function Row({ label, text, children, padTop = 'pt-16', padBottom = 'pb-4' }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#141414] px-6 py-8 text-center">
-      <div className="flex items-center justify-center gap-3">
-        <span className="text-5xl font-light text-white">{num}</span>
-        {dot && <span className="h-2.5 w-2.5 rounded-full bg-neutral-500" />}
+    <Reveal strong>
+      <div
+        className={`grid grid-cols-1 gap-y-3 border-b border-white/40 md:grid-cols-[300px_1fr] md:items-end md:gap-x-14 ${padTop} ${padBottom}`}
+      >
+        <div>{label ? <Label>{label}</Label> : null}</div>
+        <div className="flex items-end justify-between gap-6">
+          <p className="text-[17px] text-white">{text}</p>
+          <div className="flex items-end">{children}</div>
+        </div>
       </div>
-      <p className="mt-2 text-sm text-neutral-400">{label}</p>
-    </div>
+    </Reveal>
   )
 }
 
 function AboutMe() {
-  // ⚠️ 临时「施工中」占位。恢复真实 About 页：删掉下面这个 return（到 “施工中占位结束” 注释为止）即可。
   return (
-    <div className="min-h-screen bg-white">
-      <NavBar />
-      <div className="container-fluid flex min-h-[calc(100vh-72px)] flex-col items-center justify-center text-center">
-        <p className="text-6xl">🚧</p>
-        <h1 className="mt-6 text-[28px] font-semibold text-black">This page is under construction</h1>
-        <p className="mt-3 text-neutral-500">
-          The About page is being redesigned — check back soon.
-        </p>
+    <div className="relative min-h-screen text-white" style={{ fontFamily: '"Figtree", sans-serif' }}>
+      {/* 整页固定蓝天山丘背景 */}
+      <div className="fixed inset-0 -z-10">
+        <GrassHills
+          className=""
+          height="100%"
+          skyTop={0x2e2a6e}
+          skyBottom={0x6863a6}
+          grassLow={0x0f2609}
+          grassMid={0x2c5620}
+          grassHigh={0x548436}
+          particleScale={0.35}
+        />
       </div>
-      <Footer light />
-    </div>
-  )
-  // —— 施工中占位结束；以下为原始 About 页内容，恢复时删掉上面的 return —— // eslint-disable-line no-unreachable
 
-  // eslint-disable-next-line no-unreachable
-  return (
-    <div className="min-h-screen bg-white">
       <NavBar />
 
-      <header className="container-fluid flex min-h-[calc(100vh-72px)] items-center">
-        <div className="flex w-full flex-col items-center justify-center gap-y-24 md:flex-row md:items-center md:gap-x-[100px]">
-          <PhotoCluster />
-          <div className="max-w-xl text-center md:text-left">
-            <h1 className="text-[22px] font-normal text-neutral-700">Hey again 😎</h1>
-            <p className="mt-6 text-[18px] text-neutral-600">
-              I'm no stranger to design. I've worked at enterprise-level corporations, mid-sized design
-              agencies, and fast-growing unicorn startups, tackling projects across UX, visual art,
-              video editing, 3D prototyping, and marketing. While I'm now pursuing a career in UX/UI, my
-              past experiences have equipped me with a range of transferable skills that shape the
-              designer I am today.
+      <main
+        className="container-fluid pt-16 pb-32"
+        style={{ textShadow: '0 1px 14px rgba(0,0,0,0.22)' }}
+      >
+        {/* About Me */}
+        <section className="grid grid-cols-1 gap-y-4 md:grid-cols-[300px_1fr] md:gap-x-14">
+          <Label>About Me</Label>
+          <div className="max-w-2xl space-y-6 text-[17px] leading-relaxed text-white">
+            <p>
+              I&rsquo;m Huiyang Chen, a creative with 2.5 years of experience across agencies, in-house
+              teams, startups, and helped 6+ clients launched brands and products. I enter my mind flow
+              quickly when I&rsquo;m doing creative work, which makes me fullfilling. Creatings products
+              and brands with intention, character, and lasting impact.
             </p>
-            <p className="mt-12 text-[18px] text-neutral-600">Outside of work, I'm a fine artist.</p>
+            <p>
+              I&rsquo;m currently a designer at Omnicom Health, bringing new digital experiences to
+              pharma brand campaigns and creating enterprise-grade tools.
+            </p>
+            <p>
+              I also build projects with code. I use AI tools to develop real applications, prototypes,
+              and experiments. It keeps me close to the medium and helps me understand what&rsquo;s
+              possible.
+            </p>
           </div>
-        </div>
-      </header>
+        </section>
 
-      {/* Experience Snapshot —— 左侧同样 5 张占位卡，右侧内容与 Hey again 文字左对齐 */}
-      <section className="container-fluid mt-6">
-        <div className="flex flex-col gap-y-12 md:flex-row md:items-start md:gap-x-[100px]">
-          <PhotoCluster animate={false} />
-          <div className="min-w-0 flex-1 text-left">
-            <h2 className="text-[22px] font-normal text-neutral-700">Experience Snapshot</h2>
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <StatCard num="5" label="Years designing" dot />
-              <StatCard num="6" label="Case studies" />
-              <StatCard num="10" label="Platform design system" />
+        {/* Awards */}
+        <section className="mt-24 grid grid-cols-1 gap-y-4 md:grid-cols-[300px_1fr] md:gap-x-14">
+          <Label>Awards</Label>
+          <ul className="space-y-5 text-[17px] text-white">
+            <li>Red Dot Design Award - Brand and Communication Winner, 2024 &amp; 2025</li>
+            <li>IF Design Award - Product Design Winner, 2025</li>
+            <li>A&rsquo; Design Award - Silver, 2025</li>
+            <li>Indigo Design Award Gold - Shortlisted for Best in Digital Design, 2025</li>
+            <li>New York Product Design - Gold, 2024 &amp; 025</li>
+          </ul>
+        </section>
+
+        {/* People have described me as —— 标签与 “a team cheerleader” 同一行 */}
+        <div className="mt-24">
+          <Row label="People Have Described Me As" text="a team cheerleader">
+            <div className="flex items-end pl-4">
+              <Photo src={teamCafe} className="h-24 w-32" rotate={-6} y={-6} />
+              <Photo src={teamPair} className="-ml-4 h-28 w-24" rotate={5} y={-44} />
+              <Photo src={teamBlue} className="-ml-4 h-24 w-36" rotate={-4} y={-14} />
+              <Photo src={teamGreen} className="-ml-4 h-24 w-32" rotate={6} y={-34} />
             </div>
-            <p className="mt-6 text-[15px] leading-relaxed text-neutral-600">
-              I started as a computer science graduate in India, but I cared more about why the code
-              existed than the code itself, and that pulled me into design. Four years later I design the
-              front end, direct AI agents to build it, and write the checks that catch them when they
-              fake done. I have worked across video, 3D, and product interfaces, and the part I will not
-              hand off is the judgment about what good looks like.
-            </p>
-          </div>
+          </Row>
         </div>
-      </section>
 
-      {/* Awards —— 占位 */}
-      <section className="container-fluid mt-16 text-left">
-        <h2 className="text-[22px] font-normal text-neutral-700">Awards</h2>
-        <div className="mt-6 max-w-3xl space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-3.5 rounded bg-neutral-200"
-              style={{ width: i === 3 ? '55%' : '100%' }}
-            />
-          ))}
+        {/* Outside of Work —— 标签与第一行 “I own a growing collection…” 同一行 */}
+        <div className="mt-24">
+          <Row
+            label="Outside of Work"
+            text="I own a growing collection of New York City gelato map"
+            padTop="pt-8"
+            padBottom="pb-2"
+          >
+            <Photo src={gelatoMatcha} className="h-32 w-24" rotate={-6} y={-24} />
+            <Photo src={gelatoMooHope} className="-ml-4 h-28 w-20" rotate={5} y={-4} />
+            <Photo src={gelatoPistachio} className="-ml-4 h-36 w-24" rotate={-4} y={-42} />
+          </Row>
+
+          <Row text="I do tattoo designs" padTop="pt-8" padBottom="pb-2">
+            <Photo src={tattooWhite} className="h-24 w-32" rotate={-5} y={-6} />
+            <Photo src={tattooBlack} className="-ml-3 h-32 w-24" rotate={7} y={-40} />
+          </Row>
+
+          <Row text="I&rsquo;m a sourdough girl" padTop="pt-8" padBottom="pb-2">
+            <Photo src={sourdough2} className="h-28 w-36" rotate={-5} y={-34} />
+            <Photo src={sourdough1} className="-ml-4 h-32 w-28" rotate={6} y={-6} />
+          </Row>
+
+          <Row text="I feed little piggies" padTop="pt-8" padBottom="pb-2">
+            <Photo src={piggies} className="h-28 w-44" rotate={-3} y={-22} />
+          </Row>
+
+          <Row
+            text="I use Claude agents and Notion AI to manage my daily life"
+            padTop="pt-8"
+            padBottom="pb-2"
+          >
+            <Photo src={pixelPig} className="h-28 w-28" contain plain y={16} />
+          </Row>
         </div>
-      </section>
+      </main>
 
-      <h2 className="container-fluid mt-16 text-3xl font-bold text-black text-center">
-        On my creative desk …
-      </h2>
-
-      <section className="container-fluid mt-12 grid grid-cols-1 items-center gap-8 md:grid-cols-2">
-        <Reveal>
-          <img
-            src={awardsGrid}
-            alt="International awards"
-            className="w-full rounded-2xl object-cover aspect-[4/3]"
-          />
-        </Reveal>
-        <Reveal className="text-left">
-          <h3 className="text-2xl font-bold text-black">International Awards Team Lead</h3>
-          <p className="mt-4 text-neutral-600">
-            I feel a deep sense of pride and joy knowing that the work I create with my friends resonates
-            with audiences around the world. Seeing our collaborative efforts exhibited internationally
-            makes all the long hours and creative challenges feel truly worthwhile.
-          </p>
-        </Reveal>
-      </section>
-
-      <section className="container-fluid mt-16 grid grid-cols-1 items-center gap-8 md:grid-cols-2">
-        <Reveal className="text-left md:order-1">
-          <h3 className="text-2xl font-bold text-black">UX Design Intern at IPG Health</h3>
-          <p className="mt-4 text-neutral-600">
-            This summer, I worked as a UX Design Intern at one of the 50+ agencies within IPG Health, a
-            global healthcare network providing full-service design and medical communications solutions
-            worldwide. In addition to designing a B2B SaaS web platform and visual assets for pharmaceutical
-            companies, I gained valuable experience navigating regulatory constraints while maintaining a
-            commitment to pushing creative boundaries.
-          </p>
-        </Reveal>
-        <Reveal className="md:order-2">
-          <Carousel
-            slides={[
-              { src: internHero, alt: 'IPG Health project' },
-              { src: fan5, alt: 'Team collaboration' },
-            ]}
-          />
-        </Reveal>
-      </section>
-
-      <section className="container-fluid mt-16 grid grid-cols-1 items-center gap-8 md:grid-cols-2">
-        <Reveal>
-          <img
-            src={laptopGroup}
-            alt="Team working together"
-            className="w-full rounded-2xl object-cover aspect-[4/3]"
-          />
-        </Reveal>
-        <Reveal className="text-left">
-          <h3 className="text-2xl font-bold text-black">What kind of designer am I?</h3>
-          <p className="mt-4 text-neutral-600">
-            One thing I might be prouder of than my actual designs is this little nugget of feedback I've
-            gotten from teammates:{' '}
-            <span className="italic text-neutral-700">
-              "You're easy to work with, and we'd totally work with you again."
-            </span>{' '}
-            I've been lucky to team up with some amazing design pals along the way.
-          </p>
-        </Reveal>
-      </section>
-
-      <Footer light extraIcons={[{ src: mailIcon, alt: 'Email', href: '#' }]} />
+      <Footer />
     </div>
   )
 }

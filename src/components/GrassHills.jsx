@@ -61,7 +61,18 @@ function CardParticles({ count = 100 }) {
 // 不 hover 时相机自身缓慢漂移，保持画面有呼吸感。
 // markers: 锚定在地形上的发光白色方块。每个 { x, z, label? } 是世界坐标（非屏幕百分比），
 // 每帧投影到屏幕位置，因此 pan 山脉时方块会「粘」在同一处地形上一起移动。
-function GrassHills({ height = 'clamp(320px, 58vh, 560px)', className = 'mt-24', markers = [] }) {
+function GrassHills({
+  height = 'clamp(320px, 58vh, 560px)',
+  className = 'mt-24',
+  markers = [],
+  sky = 0xeef1ea, // 单色天空/雾（默认淡雾）
+  skyTop, // 传入 skyTop+skyBottom 则用竖向渐变天空（如蓝天）
+  skyBottom,
+  particleScale = 1, // 漂浮粒子数量倍率（<1 更稀疏）
+  grassLow = 0x1f4216, // 谷底色
+  grassMid = 0x59902f, // 中间色
+  grassHigh = 0xb6d982, // 山顶色
+}) {
   const mountRef = useRef(null)
   const markerRefs = useRef([])
   // 点击方块后弹出的连接线 + 卡片
@@ -79,7 +90,7 @@ function GrassHills({ height = 'clamp(320px, 58vh, 560px)', className = 'mt-24',
     const mount = mountRef.current
     if (!mount) return
 
-    const SKY = 0xeef1ea // 淡雾色：天空与雾同色，远处山丘消融进雾里
+    const SKY = sky // 淡雾色：天空与雾同色，远处山丘消融进雾里
     const REDUCE = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
     // --- 渲染器（WebGL 不可用时回退成 CSS 渐变） ---
@@ -98,8 +109,26 @@ function GrassHills({ height = 'clamp(320px, 58vh, 560px)', className = 'mt-24',
 
     // --- 场景 / 雾 / 相机 ---
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(SKY)
-    scene.fog = new THREE.Fog(SKY, 34, 168)
+    if (skyTop != null && skyBottom != null) {
+      // 竖向渐变天空（深蓝→近地平浅蓝），雾色取地平线浅蓝让远山融进去
+      const gc = document.createElement('canvas')
+      gc.width = 4
+      gc.height = 256
+      const gx = gc.getContext('2d')
+      const hex = (n) => '#' + n.toString(16).padStart(6, '0')
+      const grad = gx.createLinearGradient(0, 0, 0, 256)
+      grad.addColorStop(0, hex(skyTop))
+      grad.addColorStop(1, hex(skyBottom))
+      gx.fillStyle = grad
+      gx.fillRect(0, 0, 4, 256)
+      const skyTex = new THREE.CanvasTexture(gc)
+      skyTex.colorSpace = THREE.SRGBColorSpace
+      scene.background = skyTex
+      scene.fog = new THREE.Fog(skyBottom, 34, 168)
+    } else {
+      scene.background = new THREE.Color(SKY)
+      scene.fog = new THREE.Fog(SKY, 34, 168)
+    }
 
     const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / mount.clientHeight, 0.1, 400)
     camera.position.set(0, 17, 60)
@@ -153,9 +182,9 @@ function GrassHills({ height = 'clamp(320px, 58vh, 560px)', className = 'mt-24',
     const geo = new THREE.PlaneGeometry(SIZE, SIZE, SEG, SEG)
     geo.rotateX(-Math.PI / 2)
     const pos = geo.attributes.position
-    const cLow = new THREE.Color(0x1f4216) // 谷底更深绿（加强明暗对比）
-    const cMid = new THREE.Color(0x59902f) // 中绿
-    const cHigh = new THREE.Color(0xb6d982) // 山顶更亮绿
+    const cLow = new THREE.Color(grassLow) // 谷底
+    const cMid = new THREE.Color(grassMid) // 中绿
+    const cHigh = new THREE.Color(grassHigh) // 山顶
     const tmp = new THREE.Color()
     const colors = new Float32Array(pos.count * 3)
     for (let i = 0; i < pos.count; i++) {
@@ -231,7 +260,7 @@ function GrassHills({ height = 'clamp(320px, 58vh, 560px)', className = 'mt-24',
     scene.add(flowers)
 
     // --- 空气中漂浮的粒子（白 + 深绿），缓缓浮动，增强空间层次 ---
-    const PCOUNT = 460
+    const PCOUNT = Math.max(1, Math.round(460 * particleScale))
     const pPos = new Float32Array(PCOUNT * 3)
     const pBase = new Float32Array(PCOUNT * 3) // 原始位置，浮动围绕它抖
     const pPhase = new Float32Array(PCOUNT)

@@ -201,6 +201,16 @@ body {
   animation: marker-glow 2.4s ease-in-out infinite;
 }
 
+/* About 页图片：hover 时可爱地 wiggle 一下 */
+@keyframes about-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-4deg); }
+  60% { transform: rotate(4deg); }
+  85% { transform: rotate(-2deg); }
+}
+.about-photo img { transition: transform 0.2s ease; }
+.about-photo:hover img { animation: about-wiggle 0.55s ease-in-out; }
+
 /* 卡片四周向外扩散的白色小粒子（每颗方向/时长随机，形成无规则发散） */
 @keyframes card-particle {
   0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
