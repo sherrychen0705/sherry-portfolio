@@ -41,6 +41,7 @@ import Reveal from '../components/Reveal'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 import GrassHills from '../components/GrassHills'
+import IntroReveal from '../components/IntroReveal'
 
 // value=内部过滤值/路由（不变），label=按钮显示文字
 const filterTags = [
@@ -202,8 +203,8 @@ const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
 
 function Hero() {
   return (
-    <header className="container-fluid pt-16 text-left">
-      <div className="flex items-center gap-3 mb-6">
+    <header className="container-fluid flex min-h-[39vh] flex-col items-center justify-center pt-11 text-center">
+      <div className="mb-6 flex items-center gap-3">
         <img
           src={avatar}
           alt="Sherry Chen"
@@ -211,21 +212,12 @@ function Hero() {
         />
         <span className="text-neutral-600 text-sm">Sherry (Huiyang) Chen</span>
       </div>
-      <h1 className="max-w-4xl text-[40px] font-medium leading-[1.2] text-black md:text-[60px]">
-        {'Turning complexity into experiences people can trust.'.split(' ').map((word, i) => (
-          <span
-            key={i}
-            className="word-in mr-[0.28em] inline-block"
-            style={{ animationDelay: `${i * 85}ms` }}
-          >
-            {word}
-          </span>
-        ))}
-      </h1>
-      <p className="mt-6 text-neutral-600 max-w-4xl">
-        Currently at <span className="text-blue-400">Omnicom Health</span> | Judge at Orpetron | Prev
-        at IPG Health ⋄ IKEA ⋄ UMich ⋄{' '}
-        <span className="whitespace-nowrap">Parsons School of Design</span>
+      {/* 「设计工具选中物件」入场动效（复刻录屏） */}
+      <IntroReveal />
+      <p className="mt-6 max-w-2xl text-neutral-600">
+        Hi, this is Sherry. I turn complexity into experiences people can trust. I&rsquo;m currently at{' '}
+        <span className="text-blue-400">Omnicom Health</span> | Judge at Orpetron | Prev at IPG Health
+        ⋄ IKEA ⋄ UMich ⋄ <span className="whitespace-nowrap">Parsons School of Design</span>
       </p>
     </header>
   )
@@ -600,13 +592,21 @@ function Home({ defaultFilter = null }) {
     <div className="min-h-screen bg-white">
       <NavBar fixed />
       {/* 顶部白→浅绿渐变：intro 文字落在过渡段，向下与山脉天空色 (#eef1ea) 无缝衔接 */}
-      <div style={{ background: 'linear-gradient(to bottom, #ffffff 0%, #ffffff 22%, #eef1ea 100%)' }}>
+      <div style={{ background: 'linear-gradient(to bottom, #ffffff 0%, #ffffff 22%, #ededed 100%)', overflowX: 'clip' }}>
         <div className="h-24" />
         <Hero />
       </div>
       {/* Hero 场景：程序化起伏绿地（替换原 exploring-creativity 视频）；高度缩到原来的 95%。
           发光白色方块标记锚定在地形上（世界坐标），随 pan 一起移动 —— 由 GrassHills 内部投影渲染 */}
-      <GrassHills height="clamp(355px, 66vh, 727px)" className="" markers={heroMarkers} />
+      <GrassHills
+        height="clamp(355px, 66vh, 727px)"
+        className=""
+        markers={heroMarkers}
+        sky={0xededed}
+        grassLow={0x0d0d0d}
+        grassMid={0x616161}
+        grassHigh={0xe6e6e6}
+      />
       <div className="dot-grid pb-20 relative">
         {/* 深绿粒子从上飘落，接续山脉粒子感 */}
         <FallingParticles />

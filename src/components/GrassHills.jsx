@@ -101,7 +101,7 @@ function GrassHills({
       mount.style.background = 'linear-gradient(#eef1ea,#cfe0bf)'
       return
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)) // 提高清晰度，减少锯齿/像素感
     renderer.setSize(mount.clientWidth, mount.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.domElement.style.display = 'block'
@@ -134,8 +134,8 @@ function GrassHills({
     camera.position.set(0, 17, 60)
 
     // --- 灯光 ---
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x3f5622, 0.55)) // 环境光调低 → 暗部更暗
-    const sun = new THREE.DirectionalLight(0xfff0cf, 1.45)
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x2a2a2a, 0.55)) // 中性环境光（去绿色地面反射）
+    const sun = new THREE.DirectionalLight(0xffffff, 1.45) // 纯白阳光 → 保持灰阶不偏色
     sun.position.set(-46, 20, 14) // 压低太阳高度 → 掠射，山体明暗对比更强、立体
     scene.add(sun)
 
@@ -165,7 +165,7 @@ function GrassHills({
 
     // 地形高度：大丘陵（幂函数拔高山峰、压平谷底 → 更 dramatic）+ 中/细节起伏
     const SIZE = 200
-    const SEG = 220
+    const SEG = 360 // 更高网格精度 → 山体更精细、silhouette 更平滑
     const heightAt = (x, z) => {
       const big = fbm(x * 0.014 + 10, z * 0.014 + 10) // 0..1
       const mid = fbm(x * 0.05 + 40, z * 0.05 + 40)
@@ -191,10 +191,11 @@ function GrassHills({
       const x = pos.getX(i), z = pos.getZ(i)
       const h = heightAt(x, z)
       pos.setY(i, h)
-      const t = THREE.MathUtils.clamp((h + 13) / 36, 0, 1)
+      let t = THREE.MathUtils.clamp((h + 13) / 36, 0, 1)
+      t = THREE.MathUtils.clamp((t - 0.5) * 1.4 + 0.5, 0, 1) // 提高对比 → 明暗层次更分明
       if (t < 0.5) tmp.copy(cLow).lerp(cMid, t / 0.5)
       else tmp.copy(cMid).lerp(cHigh, (t - 0.5) / 0.5)
-      const grain = 0.9 + hash(x * 3.1, z * 3.1) * 0.18 // 细颗粒，模拟草的杂色
+      const grain = 0.93 + vnoise(x * 0.5, z * 0.5) * 0.14 // 平滑杂色（非逐点随机）→ 无噪点/像素感
       colors[i * 3] = tmp.r * grain
       colors[i * 3 + 1] = tmp.g * grain
       colors[i * 3 + 2] = tmp.b * grain
@@ -266,7 +267,7 @@ function GrassHills({
     const pPhase = new Float32Array(PCOUNT)
     const pColArr = new Float32Array(PCOUNT * 3)
     const cWhite = new THREE.Color(0xffffff)
-    const cDarkGreen = new THREE.Color(0x2b491c)
+    const cDark = new THREE.Color(0x141414) // 深灰近黑（配合灰阶山丘）
     for (let i = 0; i < PCOUNT; i++) {
       const x = (Math.random() - 0.5) * 170
       const z = (Math.random() - 0.5) * 120 - 8
@@ -274,24 +275,33 @@ function GrassHills({
       pBase[i * 3] = x; pBase[i * 3 + 1] = y; pBase[i * 3 + 2] = z
       pPos[i * 3] = x; pPos[i * 3 + 1] = y; pPos[i * 3 + 2] = z
       pPhase[i] = Math.random() * Math.PI * 2
-      const c = Math.random() < 0.5 ? cWhite : cDarkGreen
+      const c = Math.random() < 0.5 ? cWhite : cDark
       pColArr[i * 3] = c.r; pColArr[i * 3 + 1] = c.g; pColArr[i * 3 + 2] = c.b
     }
     const pgeo = new THREE.BufferGeometry()
     pgeo.setAttribute('position', new THREE.Float32BufferAttribute(pPos, 3))
     pgeo.setAttribute('color', new THREE.Float32BufferAttribute(pColArr, 3))
+    // 清晰硬边小圆点贴图（不要柔化模糊）：实心圆 + alphaTest 裁出锐利边缘
+    const dotC = document.createElement('canvas')
+    dotC.width = dotC.height = 32
+    const dctx = dotC.getContext('2d')
+    dctx.fillStyle = '#fff'
+    dctx.beginPath()
+    dctx.arc(16, 16, 12, 0, Math.PI * 2)
+    dctx.fill()
+    const dotTex = new THREE.CanvasTexture(dotC)
     const particles = new THREE.Points(
       pgeo,
       new THREE.PointsMaterial({
-        size: 0.8,
-        map: flowerTex,
+        size: 0.45, // 更细
+        map: dotTex,
         vertexColors: true,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.95,
         depthWrite: false,
         sizeAttenuation: true,
         fog: true,
-        alphaTest: 0.01,
+        alphaTest: 0.5, // 锐利边缘、清晰颗粒
       }),
     )
     scene.add(particles)
@@ -335,7 +345,7 @@ function GrassHills({
       camera.position.x = curX * 4 + drift // pan 幅度进一步减弱（原 8）
       camera.position.y = 17 - curY * 1.2
       look.x = curX * 13 + drift * 0.6 // 原 24
-      look.y = 4 + curY * 1.0
+      look.y = -12 + curY * 1.0 // 视线压低 → 地平线抬高、天空减少（内容离山脉更近）
       camera.lookAt(look)
       // 漂浮粒子：绕原位缓缓浮动
       if (!REDUCE) {
@@ -418,6 +428,7 @@ function GrassHills({
       pgeo.dispose()
       particles.material.dispose()
       flowerTex.dispose()
+      dotTex.dispose()
       renderer.dispose()
       if (el.parentNode === mount) mount.removeChild(el)
     }

@@ -246,3 +246,187 @@ body {
   animation: hillcard-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: 0.12s; /* 线先画一点，再出卡片 */
 }
+
+
+/* IntroReveal —— 「设计工具选中物件」入场动效（逐字母打字 + 像素化解析的内嵌图 + 手柄 + 箭头）
+   内部尺寸全部用 em，跟随 .ir-box 的 font-size 缩放；当前 font-size 已是原来的 3 倍。 */
+.ir-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5em;
+}
+.ir-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: clamp(54px, 6.3vw, 72px); /* 3× 原大小 */
+  line-height: 1.1;
+  color: #3a3a3a;
+  transition: color 0.55s ease;
+  padding: 0.35em 0.25em;
+}
+.ir-box.ir-reveal {
+  color: #cf2a86; /* 品红 */
+}
+.ir-brace {
+  opacity: 0.8;
+  display: inline-block;
+  font-weight: 300; /* 不加粗 */
+}
+/* 图片弹出把括号往外推时，括号更丝滑、更明显地回弹（多段过冲 spring） */
+.ir-box.ir-reveal .ir-brace-l {
+  animation: ir-bounce-l 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.ir-box.ir-reveal .ir-brace-r {
+  animation: ir-bounce-r 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes ir-bounce-l {
+  0% { transform: translateX(0.85em); }
+  50% { transform: translateX(-0.22em); } /* 明显向外过冲 */
+  72% { transform: translateX(0.09em); }
+  88% { transform: translateX(-0.03em); }
+  100% { transform: translateX(0); }
+}
+@keyframes ir-bounce-r {
+  0% { transform: translateX(-0.85em); }
+  50% { transform: translateX(0.22em); }
+  72% { transform: translateX(-0.09em); }
+  88% { transform: translateX(0.03em); }
+  100% { transform: translateX(0); }
+}
+.ir-phrase {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+/* 内嵌媒体卡：尺寸由 inline width/height（--w=最终宽）决定，逐张不同（按草图）；圆角；
+   出场用宽度从 0 拉开的揭示（ir-reveal-w）——像视频那样把文字推开，图片本身始终清晰。 */
+.ir-img {
+  position: relative;
+  display: inline-block;
+  margin: 0 0.14em;
+  border-radius: 0.16em;
+  overflow: hidden; /* 裁掉未揭示部分 */
+  vertical-align: middle;
+  box-shadow: 0 0.04em 0.18em rgba(0, 0, 0, 0.12);
+  animation: ir-reveal-w 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes ir-reveal-w {
+  from { width: 0; }
+  to { width: var(--w); }
+}
+/* 内嵌真实媒体：固定最终尺寸（inline 设定），object-fit cover 保证清晰不变形；揭示时被外层裁切 */
+.ir-media {
+  position: absolute;
+  left: 0;
+  top: 0;
+  object-fit: cover;
+  display: block;
+  max-width: none;
+}
+/* 打字光标 */
+.ir-caret {
+  display: inline-block;
+  width: 0.06em;
+  height: 1em;
+  margin-left: 0.05em;
+  background: currentColor;
+  vertical-align: middle;
+  animation: ir-caret-blink 0.8s steps(1) infinite;
+}
+@keyframes ir-caret-blink {
+  50% { opacity: 0; }
+}
+/* 四角选择手柄小方块 */
+.ir-h {
+  position: absolute;
+  width: 0.3em;
+  height: 0.3em;
+  background: #111;
+  opacity: 0;
+  transform: scale(0.3);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ir-h-tl { left: -0.42em; top: -0.42em; }
+.ir-h-tr { right: -0.42em; top: -0.42em; }
+.ir-h-bl { left: -0.42em; bottom: -0.42em; }
+.ir-h-br { right: -0.42em; bottom: -0.42em; }
+/* 故障式：位置乱跳 + 闪烁 + 变色（蓝/粉/绿，活泼）；大小固定不变。
+   steps 跳变，四角各自不同步 → buggy 选择框感 */
+.ir-box.ir-active .ir-h-tl { animation: ir-glitch-a 1.1s steps(1, end) infinite; }
+.ir-box.ir-active .ir-h-tr { animation: ir-glitch-b 1.3s steps(1, end) 0.1s infinite; }
+.ir-box.ir-active .ir-h-bl { animation: ir-glitch-c 1.5s steps(1, end) 0.2s infinite; }
+.ir-box.ir-active .ir-h-br { animation: ir-glitch-d 1.2s steps(1, end) 0.15s infinite; }
+@keyframes ir-glitch-a {
+  0% { opacity: 1; transform: translate(0, 0); background: #111; }
+  12% { opacity: 0.1; transform: translate(0.16em, -0.1em); background: #3b82f6; } /* 蓝 */
+  26% { opacity: 1; transform: translate(-0.09em, 0.13em); background: #ec4899; } /* 粉 */
+  40% { opacity: 0; transform: translate(0.2em, 0.05em); background: #111; }
+  54% { opacity: 1; transform: translate(-0.13em, -0.15em); background: #22c55e; } /* 绿 */
+  70% { opacity: 0.5; transform: translate(0.07em, 0.09em); background: #3b82f6; }
+  84% { opacity: 1; transform: translate(-0.04em, -0.03em); background: #111; }
+  100% { opacity: 1; transform: translate(0, 0); background: #111; }
+}
+@keyframes ir-glitch-b {
+  0% { opacity: 1; transform: translate(0, 0); background: #111; }
+  16% { opacity: 0; transform: translate(-0.18em, 0.08em); background: #ec4899; }
+  30% { opacity: 1; transform: translate(0.12em, -0.12em); background: #22c55e; }
+  46% { opacity: 0.2; transform: translate(-0.06em, 0.16em); background: #111; }
+  60% { opacity: 1; transform: translate(0.15em, 0.04em); background: #3b82f6; }
+  78% { opacity: 0.6; transform: translate(-0.1em, -0.08em); background: #ec4899; }
+  100% { opacity: 1; transform: translate(0, 0); background: #111; }
+}
+@keyframes ir-glitch-c {
+  0% { opacity: 1; transform: translate(0, 0); background: #111; }
+  14% { opacity: 0.15; transform: translate(0.1em, 0.14em); background: #22c55e; }
+  28% { opacity: 1; transform: translate(-0.15em, -0.06em); background: #3b82f6; }
+  44% { opacity: 0; transform: translate(0.06em, -0.16em); background: #111; }
+  62% { opacity: 1; transform: translate(-0.08em, 0.1em); background: #ec4899; }
+  80% { opacity: 0.5; transform: translate(0.13em, 0.03em); background: #22c55e; }
+  100% { opacity: 1; transform: translate(0, 0); background: #111; }
+}
+@keyframes ir-glitch-d {
+  0% { opacity: 1; transform: translate(0, 0); background: #111; }
+  18% { opacity: 0; transform: translate(0.17em, -0.09em); background: #3b82f6; }
+  32% { opacity: 1; transform: translate(-0.11em, 0.15em); background: #ec4899; }
+  50% { opacity: 0.25; transform: translate(0.05em, 0.07em); background: #111; }
+  66% { opacity: 1; transform: translate(-0.16em, -0.05em); background: #22c55e; }
+  82% { opacity: 0.6; transform: translate(0.08em, 0.11em); background: #3b82f6; }
+  100% { opacity: 1; transform: translate(0, 0); background: #111; }
+}
+/* 两侧箭头 */
+.ir-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9em;
+  color: #c2c2c2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.ir-arrow-l { left: -1.8em; }
+.ir-arrow-r { right: -1.8em; }
+.ir-box.ir-reveal .ir-arrow-l {
+  opacity: 1;
+  animation: ir-arrow-l 1.6s ease-in-out infinite;
+}
+.ir-box.ir-reveal .ir-arrow-r {
+  opacity: 1;
+  animation: ir-arrow-r 1.6s ease-in-out infinite;
+}
+@keyframes ir-arrow-l {
+  0%, 100% { transform: translate(0, -50%); }
+  50% { transform: translate(-0.28em, -50%); }
+}
+@keyframes ir-arrow-r {
+  0%, 100% { transform: translate(0, -50%); }
+  50% { transform: translate(0.28em, -50%); }
+}
+
+/* 手机端：整段 IntroReveal 交互缩放到容器内完整可见（桌面大尺寸不变） */
+@media (max-width: 768px) {
+  .ir-box {
+    font-size: clamp(12px, 4.9vw, 34px);
+  }
+}
