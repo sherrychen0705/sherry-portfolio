@@ -45,8 +45,8 @@ import IntroReveal from '../components/IntroReveal'
 
 // value=内部过滤值/路由（不变），label=按钮显示文字
 const filterTags = [
-  { value: 'Branding', label: 'Visual · Branding' },
-  { value: 'Product', label: 'UXUI Product' },
+  { value: 'Branding', label: 'Visual & Campaign' },
+  { value: 'Product', label: 'Product' },
 ]
 
 // 每张卡的占位文字（副标题 + hover 展开的项目介绍），之后逐个替换成真实文案。

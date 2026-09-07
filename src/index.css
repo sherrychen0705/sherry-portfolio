@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pathway+Extreme:opsz,wght@8..144,100..900&display=swap');
 @import 'tailwindcss';
 
 body {
@@ -429,4 +430,41 @@ body {
   .ir-box {
     font-size: clamp(12px, 4.9vw, 34px);
   }
+}
+
+/* Heykura 页本地编辑模式：可编辑文字的 hover/focus 提示 */
+.nexus-page [contenteditable="true"]:hover {
+  outline: 1px dashed rgba(91, 156, 63, 0.45);
+  outline-offset: 3px;
+  border-radius: 2px;
+  cursor: text;
+}
+.nexus-page [contenteditable="true"]:focus {
+  outline: 1.5px solid #5b9c3f;
+  outline-offset: 3px;
+  border-radius: 2px;
+  background: rgba(91, 156, 63, 0.06);
+}
+
+/* 本地编辑器 UI：全站隐藏了系统鼠标，这里把它放回来，拖拽手柄才看得出方向 */
+.spacing-ui,
+.spacing-ui * {
+  cursor: default !important;
+}
+.spacing-ui .handle-v {
+  cursor: ns-resize !important;
+}
+.spacing-ui .handle-h {
+  cursor: ew-resize !important;
+}
+.spacing-ui .num-scrub {
+  cursor: ew-resize !important;
+}
+
+/* Heykura 页试用的标题字体（目前 Pathway Extreme），换字体只改这一处。
+   这里只管字体、不锁字重——字重交给各处的 Tailwind 类（font-medium /
+   font-bold）决定，否则会把用到的地方的字重全压成同一个值。
+   这个是可变字体，100–900 都是真字重，不会出现浏览器伪粗体。 */
+.font-display {
+  font-family: 'Pathway Extreme', sans-serif;
 }
