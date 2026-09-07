@@ -17,12 +17,17 @@ import NewProject4 from './pages/NewProject4'
 import NewProject5 from './pages/NewProject5'
 import NewProject6 from './pages/NewProject6'
 import CustomCursor from './components/CustomCursor'
-import LoadingScreen from './components/LoadingScreen'
+// 首访 loading 动画暂时停用，import 一并注释掉（否则 lint 会报未使用）。
+// 想恢复：把这行和下面 <LoadingScreen /> 那行的注释一起去掉。
+// import LoadingScreen from './components/LoadingScreen'
 
 function App() {
   return (
     <BrowserRouter>
-      <LoadingScreen />
+      {/* 首访 loading 动画暂时停用。组件本身保留在
+          src/components/LoadingScreen.jsx，没有删。
+          想恢复：去掉这行和顶部 import 那行的注释。 */}
+      {/* <LoadingScreen /> */}
       <CustomCursor />
       <Routes>
         <Route path="/" element={<Home key="home" />} />
