@@ -913,12 +913,12 @@ function Home({ defaultFilter = null }) {
           <WorkShowcase activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
           {/* 新画廊 = Visual & Campaign 的作品。Product 视图下不出现。
               背景沿用外层 dot-grid 的灰底点阵。 */}
-          {/* Visual & Campaign 的作品 = 新画廊。Product 视图下不出现。 */}
-          {activeFilter !== 'Product' && <ExperimentGallery />}
-          {/* 旧的玻璃卡片区只留 Product 那几个（NEXUS / HIVE / Heykura / OHDI），
-              和以前一模一样；Visual & Campaign 视图下不出现，那边已经由新画廊接管。
-              组件、newCovers 数据、图片 import 全都保留着，随时可以调回来。 */}
-          {activeFilter !== 'Branding' && <WorkShowcaseNew activeFilter="Product" />}
+          {/* 只有 Visual & Campaign 这一个视图换成新画廊 */}
+          {activeFilter === 'Branding' && <ExperimentGallery />}
+          {/* All 和 Product 都还是原来的玻璃卡片区，行为和以前完全一样：
+              All 显示全部 10 张，Product 显示 Product 那几张。
+              组件、newCovers 数据、图片 import 一个没删。 */}
+          {activeFilter !== 'Branding' && <WorkShowcaseNew activeFilter={activeFilter} />}
         </div>
       </div>
       <Footer light />
