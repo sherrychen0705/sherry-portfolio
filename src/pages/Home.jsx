@@ -136,6 +136,8 @@ const newCovers = [
     num: '04',
     link: '/new-project-6',
     cats: ['Product'], // OHDI 不属于 Visual Branding，只在 Product/All 里显示
+    hidden: true, // 暂时不展示（All / Product 里都不出现）。想拿回来把这行删掉就行，
+                  // 数据、封面图、路由 /new-project-6 全都留着。
     imgAspect: '6 / 5',
   },
   {
@@ -410,7 +412,9 @@ const filterOrder = {
 }
 
 function WorkShowcaseNew({ activeFilter }) {
-  let covers = activeFilter ? newCovers.filter((c) => c.cats.includes(activeFilter)) : newCovers
+  // 先滤掉 hidden 的（暂时收起来、但数据还留着的项目）
+  const visible = newCovers.filter((c) => !c.hidden)
+  let covers = activeFilter ? visible.filter((c) => c.cats.includes(activeFilter)) : visible
   const order = activeFilter && filterOrder[activeFilter]
   if (order) {
     covers = [...covers].sort((a, b) => order.indexOf(a.link) - order.indexOf(b.link))
