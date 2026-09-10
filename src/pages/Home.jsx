@@ -7,6 +7,36 @@ import workSkinlab from '../assets/home/work-skinlab.jpg'
 import workGlobbbe from '../assets/home/work-globbbe.jpg'
 import hiveRebrandCover from '../assets/home/hiverebrandcover.png'
 import hiveBrandingCover from '../assets/hive-branding/poster1.png'
+// 画廊封面素材统一放 assets/covers/<项目>/，文件名前缀数字 = 播放顺序（见该目录 README）
+import hiveHeroVid from '../assets/covers/hive-rebranding/01-hero.mp4'
+import hiveIns1 from '../assets/covers/hive-rebranding/02-ins1.png'
+import hivePoster1 from '../assets/covers/hive-rebranding/03-poster1.png'
+import hiveDemo1Vid from '../assets/covers/hive-rebranding/04-demo1.mp4'
+import hiveKeyVisualVid from '../assets/covers/hive-rebranding/05-keyvisual.mp4'
+import htIpad2 from '../assets/covers/heartie/01-ipad2.png'
+import htCover from '../assets/covers/heartie/02-cover.png'
+import htWatch from '../assets/covers/heartie/03-watch.png'
+import htIpad1 from '../assets/covers/heartie/04-ipad1.png'
+import htAd1 from '../assets/covers/heartie/05-ad1.png'
+import htMerch1 from '../assets/covers/heartie/06-merch1.png'
+import hkCover from '../assets/covers/heykura/01-cover.jpg'
+import hkVideo from '../assets/covers/heykura/02-covervideo.mp4'
+import pmImg31 from '../assets/covers/primus/01-3.1.png'
+import pmImg12 from '../assets/covers/primus/02-12.png'
+import pmImg18 from '../assets/covers/primus/03-18.png'
+import pmVid1 from '../assets/covers/primus/04-1.mp4'
+import lpCover from '../assets/covers/lepal/01-work-lepal.jpg'
+import hayCoverImg from '../assets/covers/hay/01-14.png'
+import flowithBg from '../assets/covers/flowith/bg.png'
+import flowithMain from '../assets/covers/flowith/main.mp4'
+import pkScreen1 from '../assets/covers/parkinson/01-screen1.png'
+import pkScreen2 from '../assets/covers/parkinson/02-screen2.png'
+import kevHero from '../assets/covers/kevzara/01-hero.png'
+import jakHero from '../assets/covers/jakafi/01-hero.png'
+import nikHero from '../assets/covers/niktimvo/01-hero.png'
+import soundscapeImg from '../assets/covers/Soundscape/01-soundscape.jpg'
+import solarxImg from '../assets/covers/SolarX/01-solarx.jpg'
+import foodDeliveryImg from '../assets/covers/Food Delivery/01-food-delivery.jpg'
 import hayCover from '../assets/hay/14.png'
 import primusVid1 from '../assets/primus/1.mp4'
 import primusImg31 from '../assets/primus/3.1.png'
@@ -26,18 +56,18 @@ import aCover from '../assets/home/a.jpg'
 import bCover from '../assets/home/b.jpg'
 import cCover from '../assets/home/c.jpg'
 import dCover from '../assets/home/d.jpg'
-import g1 from '../assets/home/gallery/g1.jpg'
-import g2 from '../assets/home/gallery/g2.jpg'
-import g3 from '../assets/home/gallery/g3.jpg'
-import g4 from '../assets/home/gallery/g4.jpg'
-import g5 from '../assets/home/gallery/g5.jpg'
-import g6 from '../assets/home/gallery/g6.jpg'
-import g7 from '../assets/home/gallery/g7.jpg'
-import g8 from '../assets/home/gallery/g8.jpg'
-import g9 from '../assets/home/gallery/g9.jpg'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
+import {
+  useGalleryEditor,
+  useGalleryDnd,
+  Editable,
+  HeightHandle,
+  DragHandle,
+  MoveArrows,
+  GalleryToolbar,
+} from '../components/GalleryEditor'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 import GrassHills from '../components/GrassHills'
@@ -199,7 +229,6 @@ const heroMarkers = [
   },
 ]
 
-const gallery = [g1, g2, g3, g4, g5, g6, g7, g8, g9]
 
 function Hero() {
   return (
@@ -292,7 +321,7 @@ function SlideshowCover({ seq }) {
   } shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out group-hover:scale-[1.02]`
   const style = { aspectRatio: '6 / 5' }
   return cur.type === 'video' ? (
-    <video key={`v${cycle}`} src={cur.src} autoPlay muted playsInline onEnded={advance} style={style} className={cls} />
+    <video key={`v${cycle}`} src={cur.src} draggable={false} autoPlay muted playsInline onEnded={advance} style={style} className={cls} />
   ) : (
     <img src={cur.src} alt="" style={style} className={cls} />
   )
@@ -466,40 +495,6 @@ function WorkShowcase({ activeFilter, setActiveFilter }) {
   )
 }
 
-function MoreWorks() {
-  const track = [...gallery, ...gallery]
-  return (
-    <section className="mt-24 text-center">
-      <div className="container-fluid">
-        <h2 className="text-[40px] font-medium text-black leading-[1.2] md:text-[60px]">More works I'm passionate about</h2>
-        <p className="mt-3 text-neutral-500">
-          A peek into what fuels me. Take a look at more of my work at:
-          <br />
-          B2B SaaS | App Visual | User Research | Service Design | XR Concept | Industrial Design
-        </p>
-      </div>
-      <div className="mt-8 overflow-hidden py-10">
-        <div className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused]">
-          {track.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt=""
-              className="relative h-56 w-auto flex-none rounded-[3px] object-cover transition-transform duration-500 ease-out hover:z-10 hover:scale-[1.3]"
-            />
-          ))}
-        </div>
-      </div>
-      <div className="mt-6 flex items-center justify-center gap-3">
-        <RotatingSquare />
-        <a href="#" className="text-sm text-neutral-700 transition-colors hover:text-black">
-          Browse All Works
-        </a>
-      </div>
-    </section>
-  )
-}
-
 // 深色粒子从上缓缓飘落（接续上方山脉的粒子感）。canvas 铺满父容器，父容器需 relative。
 // 多色深调色板：深绿 / 暗橄榄 / 暗紫，呼应山脉里的深绿点与紫粉小花。
 const FALL_COLORS = ['#26310f', '#31401d', '#3f5228', '#4d6033', '#5f5a2e', '#4f3f66', '#6b4f7a']
@@ -585,6 +580,310 @@ function FallingParticles() {
   return <canvas ref={ref} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-0" />
 }
 
+// ── 实验区：Gallery 画廊（宽度/间距参照 martacerda.com/works）──────
+// 参考站实测：页面左右 padding 20px（几乎通栏，不走 container-fluid）、3 列、列间距 20px；
+// 图片占满列宽，下方 16px 放标题（18px / bold）+ 6px 小字，标题块下再 16px 接下一张。
+// 高度用 px 存（宽度由列宽决定，所以每张宽度永远一致、高度各自可调）。
+// 开发模式下可以直接在页面上拖高度 / 改文案，见 components/GalleryEditor.jsx。
+// ── 画廊格子的封面序列 ──────────────────────────────────────────────
+// 规则：视频完整播完才进下一帧；图片各停 2 秒；整体无限循环。
+// fit: 'contain' 的帧不裁切、等比居中放，四周露出灰色底板（给尺寸偏小的素材用）。
+const hiveCoverSeq = [
+  { type: 'video', src: hiveHeroVid }, // 14.9s
+  { type: 'img', src: hiveIns1 }, // 2s
+  { type: 'img', src: hivePoster1 }, // 2s
+  { type: 'video', src: hiveDemo1Vid, fit: 'contain' }, // 9.6s，948×938 偏小 → 居中留白
+  { type: 'video', src: hiveKeyVisualVid }, // 6.0s，1882×1016 够大 → 裁切填满
+]
+
+// HEARTIE：沿用原来主页卡片上的那一组、那个顺序（ipad2 → cover → watch → ipad1 → ad1 → merch1）
+const heartieCoverSeq = [
+  { type: 'img', src: htIpad2 },
+  { type: 'img', src: htCover },
+  { type: 'img', src: htWatch, fit: 'contain' }, // 手表产品图，不裁切 → 居中留白
+  { type: 'img', src: htIpad1 },
+  { type: 'img', src: htAd1 },
+  { type: 'img', src: htMerch1 },
+]
+
+// HEYKURA：沿用原来主页卡片的顺序（封面图 → 封面视频）
+const heykuraCoverSeq = [
+  { type: 'img', src: hkCover },
+  { type: 'video', src: hkVideo }, // 14.2s
+]
+
+// PRIMUS：沿用原来主页卡片的顺序（3.1 → 12 → 18 → 视频）
+const primusCoverSeq = [
+  { type: 'img', src: pmImg31 },
+  { type: 'img', src: pmImg12 },
+  { type: 'img', src: pmImg18 },
+  { type: 'video', src: pmVid1 }, // 7.8s
+]
+
+// LEPAL / HAY：原来主页卡片上就各只有一张静态封面图，所以这两组只有一帧（不会动）
+const lepalCoverSeq = [{ type: 'img', src: lpCover }]
+const hayCoverSeq = [{ type: 'img', src: hayCoverImg }]
+
+// FLOWITH：不是轮播，是叠加 —— bg.png 铺满做底，main.mp4 居中循环播
+const flowithCoverLayer = { bg: flowithBg, video: flowithMain, videoWidth: '78%' }
+
+// PARKINSON：你自己放进 covers/parkinson/ 的两张截图，各停 2s
+const parkinsonCoverSeq = [
+  { type: 'img', src: pkScreen1 },
+  { type: 'img', src: pkScreen2 },
+]
+
+// KEVZARA / JAKAFI / NIKTIMVO：用各自 case study 页的 hero 图，各只有一张（静止）
+const kevzaraCoverSeq = [{ type: 'img', src: kevHero }]
+const jakafiCoverSeq = [{ type: 'img', src: jakHero }]
+const niktimvoCoverSeq = [{ type: 'img', src: nikHero }]
+
+// Soundscape / SolarX / Food Delivery：各一张静态图（不会动）
+const soundscapeCoverSeq = [{ type: 'img', src: soundscapeImg }]
+const solarxCoverSeq = [{ type: 'img', src: solarxImg }]
+const foodDeliveryCoverSeq = [{ type: 'img', src: foodDeliveryImg }]
+
+// 按项目名匹配封面：名字你在页面上随便改都行，只要还带得上这个关键词就认得出来，
+// 不依赖它排在第几格。以后加新封面就往这个表里加一行。
+// bg = 这一格 placeholder 的底色（不填默认灰 #e9e9e7）；contain 的素材四周露的就是它。
+// link = 点封面跳去哪：'/xxx' 走站内路由，'http…' 开头的在新标签打开。不填就不可点。
+const coverMatchers = [
+  { test: /hive/i, seq: hiveCoverSeq, link: '/new-project' },
+  { test: /heartie/i, seq: heartieCoverSeq, bg: '#ffffff', link: '/new-project-4' },
+  { test: /heykura/i, seq: heykuraCoverSeq, link: '/new-project-5' },
+  { test: /primus/i, seq: primusCoverSeq, link: '/new-project-3' },
+  { test: /lepal/i, seq: lepalCoverSeq, link: '/lepal' },
+  { test: /\bhay\b/i, seq: hayCoverSeq, link: '/new-project-2' }, // 加词边界，免得误伤别的名字
+  { test: /flowith/i, layer: flowithCoverLayer, link: 'https://flowith.io/home/' }, // 站外，新标签打开
+  { test: /parkinson/i, seq: parkinsonCoverSeq },
+  { test: /kev/i, seq: kevzaraCoverSeq, link: '/kevzara' },
+  { test: /jak/i, seq: jakafiCoverSeq, link: '/jakafi' },
+  { test: /nik/i, seq: niktimvoCoverSeq, link: '/niktimvo' },
+  { test: /soundscape/i, seq: soundscapeCoverSeq },
+  { test: /solar\s*x/i, seq: solarxCoverSeq },
+  { test: /food\s*delivery/i, seq: foodDeliveryCoverSeq },
+]
+const coverFor = (name) => coverMatchers.find((m) => m.test.test(name || ''))
+const BOX_BG = '#e9e9e7' // placeholder 默认底色
+
+// 叠加型封面：一张图铺满做背景 + 一段视频居中叠在上面循环播，四周露出背景。
+// videoWidth 控制视频占格子宽度的百分比（越小四周留白越多）。
+function GalleryLayerCover({ bg, video, videoWidth = '78%' }) {
+  return (
+    <>
+      <img src={bg} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />
+      <video
+        src={video}
+        draggable={false}
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{ width: videoWidth }}
+        className="absolute left-1/2 top-1/2 h-auto -translate-x-1/2 -translate-y-1/2"
+      />
+    </>
+  )
+}
+
+function GalleryCover({ seq }) {
+  const [i, setI] = useState(0)
+  const [cycle, setCycle] = useState(0) // 每轮回到起点 +1，用来强制视频重播
+  // 拖动换位后，同一个组件实例可能被复用给另一个项目（帧数不一样），
+  // 所以换了 seq 就把进度归零；再兜一层 || seq[0]，越界时不至于整页崩掉。
+  useEffect(() => {
+    setI(0)
+    setCycle(0)
+  }, [seq])
+  const cur = seq[i] || seq[0]
+  const advance = () =>
+    setI((prev) => {
+      const next = (prev + 1) % seq.length
+      if (next === 0) setCycle((c) => c + 1)
+      return next
+    })
+  useEffect(() => {
+    if (cur.type !== 'img') return // 视频靠 onEnded 推进；图片停 2 秒
+    const t = setTimeout(advance, 2000)
+    return () => clearTimeout(t)
+  }, [i, cycle])
+  const cls = `block h-full w-full ${cur.fit === 'contain' ? 'object-contain' : 'object-cover'}`
+  return cur.type === 'video' ? (
+    <video
+      key={`${cycle}-${i}`}
+      src={cur.src}
+      autoPlay
+      muted
+      playsInline
+      onEnded={advance}
+      className={cls}
+    />
+  ) : (
+    <img src={cur.src} alt="" draggable={false} className={cls} />
+  )
+}
+
+const galleryDefaults = [
+  { name: "HIVE.ai Rebranding", sub: "Visual identity and concept redesign for Hive,ai", h: 361 },
+  { name: "Primus 2.0", sub: "Visual identity and concept redesign for Primus", h: 422 },
+  { name: "Jakafi - Incyte", sub: "Client project at Omnicom Health", h: 329 },
+  { name: "Heartie", sub: "Product ecosystem designed for children age 9-14 with heart conditions", h: 447 },
+  { name: "\"See What They See — a campaign for Parkinson's disease awareness\"", sub: "Client project at IPG Health", h: 372 },
+  { name: "Kevzara - Sanofi", sub: "Client project at Omnicom Health", h: 312 },
+  { name: "Heykura.ai", sub: "An AI-powered visual ideation platform that turns vague prompts into clear creative direction", h: 546 },
+  { name: "Niktimvo - Incyte", sub: "Client project at Omnicom Health", h: 298 },
+  { name: "HAY - hygge", sub: "HYGGE product line for HAY", h: 448 },
+  { name: "Lepal", sub: "Mental wellness companion app created for Gen-Z", h: 598 },
+  { name: "Flowith", sub: "Website redesign for Flowith, an AI workspace built on an infinite canvas", h: 755 },
+  { name: "Soundscape", sub: "-", h: 773 },
+  { name: "SolarX", sub: "-", h: 687 },
+  { name: "Food Delivery", sub: "-", h: 380 },
+]
+
+// 画廊分列：**已有格子的位置永远不动**。
+// 以前用 CSS multi-column，浏览器会按高度自动平衡，一加新格子上面全部重排；
+// 现在改成自己算：前 9 个（最早那批）每列 3 个竖着分 —— 1-3 左列、4-6 中列、7-9 右列，
+// 和最初的排版完全一致；之后新增的格子依次轮流补到各列底部。
+// 所以以后再加多少格，上面已经排好的都不会动。
+const FROZEN_PER_COL = 3
+function splitColumns(items, cols) {
+  if (cols <= 1) return [items.map((it, i) => ({ it, i }))]
+  const out = Array.from({ length: cols }, () => [])
+  const frozen = cols * FROZEN_PER_COL
+  items.forEach((it, i) => {
+    const c = i < frozen ? Math.floor(i / FROZEN_PER_COL) : (i - frozen) % cols
+    out[c].push({ it, i })
+  })
+  return out
+}
+
+// 列数跟着窗口宽度走（断点和原来的 sm / lg 一致）
+const colCountFor = (w) => (w >= 1024 ? 3 : w >= 640 ? 2 : 1)
+function useColCount() {
+  const [n, setN] = useState(() => colCountFor(window.innerWidth))
+  useEffect(() => {
+    const on = () => setN(colCountFor(window.innerWidth))
+    on()
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
+  }, [])
+  return n
+}
+
+function ExperimentGallery() {
+  const ed = useGalleryEditor(galleryDefaults)
+  const dev = import.meta.env.DEV
+  const columns = splitColumns(ed.items, useColCount())
+  const dnd = useGalleryDnd(ed.move)
+  // 每一格在网格里的 (列, 行)，用来算「上下左右」是哪一格
+  const pos = new Map()
+  columns.forEach((col, c) => col.forEach(({ i }, r) => pos.set(i, [c, r])))
+  // 左右跳到相邻列的同一行；那列要是没这么长，就落到它的最后一格
+  const neighbor = (i, dir) => {
+    const p = pos.get(i)
+    if (!p) return null
+    const [c, r] = p
+    if (dir === 'up') return columns[c]?.[r - 1]?.i ?? null
+    if (dir === 'down') return columns[c]?.[r + 1]?.i ?? null
+    const tc = dir === 'left' ? c - 1 : c + 1
+    const col = columns[tc]
+    if (!col?.length) return null
+    return col[Math.min(r, col.length - 1)].i
+  }
+  return (
+    <>
+      <section className="mt-10 px-5">
+        {/* gap-5 = 20px 列间距；每列等宽，格子高度各自不同 */}
+        <div className="flex gap-5">
+          {columns.map((col, c) => (
+          <div key={c} className="min-w-0 flex-1">
+          {col.map(({ it, i }) => {
+            const cover = coverFor(it.name)
+            // 有 link 的格子整块可点：站外 http 开头用 a（新标签），站内用 router 的 Link
+            const external = cover?.link && /^https?:/i.test(cover.link)
+            const Box = cover?.link ? (external ? 'a' : Link) : 'div'
+            const boxProps = !cover?.link
+              ? {}
+              : external
+                ? { href: cover.link, target: '_blank', rel: 'noopener noreferrer' }
+                : { to: cover.link }
+            return (
+            <Reveal key={i} delay={(i % 3) * 120} className="break-inside-avoid text-left">
+              {/* 图片占位：宽度 = 列宽（统一），高度可拖；底色由该项目的 bg 决定 */}
+              <Box
+                data-gi={i}
+                {...boxProps}
+                draggable={false}
+                onDragStart={(e) => e.preventDefault()}
+                className={`group/box relative block w-full overflow-hidden transition-[opacity,outline-color] ${
+                  dnd.dragging === i
+                    ? 'opacity-40'
+                    : dnd.dragging != null && dnd.over === i
+                      ? 'outline outline-2 outline-offset-2 outline-[#5db83c]'
+                      : ''
+                }`}
+                style={{ height: `${it.h}px`, backgroundColor: cover?.bg || BOX_BG }}
+              >
+                {cover?.seq && <GalleryCover seq={cover.seq} />}
+                {cover?.layer && <GalleryLayerCover {...cover.layer} />}
+                {dev && <DragHandle onStart={dnd.start(i)} />}
+                {dev && (
+                  <MoveArrows
+                    can={(d) => neighbor(i, d) != null}
+                    onMove={(d) => ed.move(i, neighbor(i, d))}
+                  />
+                )}
+                {dev && (
+                  <HeightHandle
+                    height={it.h}
+                    onBegin={ed.begin}
+                    onChange={(h) => ed.patch(i, { h })}
+                    onEnd={ed.end}
+                  />
+                )}
+              </Box>
+              {/* 标题 + 副标题小字：整块上下各 16px */}
+              <div className="my-4">
+                {dev ? (
+                  <>
+                    <Editable
+                      value={it.name}
+                      onBegin={ed.begin}
+                      onCommit={(name) => {
+                        ed.patch(i, { name })
+                        ed.end()
+                      }}
+                      className="text-[18px] font-bold leading-[1.3] text-black"
+                    />
+                    <Editable
+                      value={it.sub}
+                      onBegin={ed.begin}
+                      onCommit={(sub) => {
+                        ed.patch(i, { sub })
+                        ed.end()
+                      }}
+                      className="mt-1.5 text-[15px] leading-snug text-neutral-500"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className="text-[18px] font-bold leading-[1.3] text-black">{it.name}</div>
+                    <p className="mt-1.5 text-[15px] leading-snug text-neutral-500">{it.sub}</p>
+                  </>
+                )}
+              </div>
+            </Reveal>
+            )
+          })}
+          </div>
+          ))}
+        </div>
+      </section>
+      {dev && <GalleryToolbar {...ed} />}
+    </>
+  )
+}
+
 function Home({ defaultFilter = null }) {
   // defaultFilter 由路由传入（/product → 'Product'，/branding → 'Branding'），进页面即预选该 tag
   const [activeFilter, setActiveFilter] = useState(defaultFilter)
@@ -612,10 +911,16 @@ function Home({ defaultFilter = null }) {
         <FallingParticles />
         <div className="relative z-10">
           <WorkShowcase activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
-          <WorkShowcaseNew activeFilter={activeFilter} />
+          {/* 新画廊 = Visual & Campaign 的作品。Product 视图下不出现。
+              背景沿用外层 dot-grid 的灰底点阵。 */}
+          {/* Visual & Campaign 的作品 = 新画廊。Product 视图下不出现。 */}
+          {activeFilter !== 'Product' && <ExperimentGallery />}
+          {/* 旧的玻璃卡片区只留 Product 那几个（NEXUS / HIVE / Heykura / OHDI），
+              和以前一模一样；Visual & Campaign 视图下不出现，那边已经由新画廊接管。
+              组件、newCovers 数据、图片 import 全都保留着，随时可以调回来。 */}
+          {activeFilter !== 'Branding' && <WorkShowcaseNew activeFilter="Product" />}
         </div>
       </div>
-      <MoreWorks />
       <Footer light />
     </div>
   )
