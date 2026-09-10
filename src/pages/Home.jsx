@@ -728,19 +728,19 @@ function GalleryCover({ seq }) {
 }
 
 const galleryDefaults = [
-  { name: "HIVE.ai Rebranding", sub: "Visual identity and concept redesign for Hive,ai", h: 361 },
-  { name: "Primus 2.0", sub: "Visual identity and concept redesign for Primus", h: 422 },
-  { name: "Jakafi - Incyte", sub: "Client project at Omnicom Health", h: 329 },
+  { name: "HIVE.ai Rebranding", sub: "Visual identity and concept redesign for Hive,ai", h: 334 },
+  { name: "Primus 2.0", sub: "Visual identity and concept redesign for Primus", h: 303 },
+  { name: "Jakafi - Incyte", sub: "Client project at Omnicom Health", h: 233 },
   { name: "Heartie", sub: "Product ecosystem designed for children age 9-14 with heart conditions", h: 447 },
-  { name: "\"See What They See — a campaign for Parkinson's disease awareness\"", sub: "Client project at IPG Health", h: 372 },
-  { name: "Kevzara - Sanofi", sub: "Client project at Omnicom Health", h: 312 },
+  { name: "\"See What They See — a campaign for Parkinson's disease awareness\"", sub: "Client project at IPG Health", h: 257 },
+  { name: "Kevzara - Sanofi", sub: "Client project at Omnicom Health", h: 220 },
   { name: "Heykura.ai", sub: "An AI-powered visual ideation platform that turns vague prompts into clear creative direction", h: 546 },
-  { name: "Niktimvo - Incyte", sub: "Client project at Omnicom Health", h: 298 },
-  { name: "HAY - hygge", sub: "HYGGE product line for HAY", h: 448 },
+  { name: "Niktimvo - Incyte", sub: "Client project at Omnicom Health", h: 217 },
+  { name: "HAY - hygge", sub: "HYGGE product line for HAY", h: 378 },
   { name: "Lepal", sub: "Mental wellness companion app created for Gen-Z", h: 598 },
-  { name: "Flowith", sub: "Website redesign for Flowith, an AI workspace built on an infinite canvas", h: 755 },
-  { name: "Soundscape", sub: "-", h: 773 },
-  { name: "SolarX", sub: "-", h: 687 },
+  { name: "Flowith", sub: "Website redesign for Flowith, an AI workspace built on an infinite canvas", h: 502 },
+  { name: "Soundscape", sub: "-", h: 650 },
+  { name: "SolarX", sub: "-", h: 483 },
   { name: "Food Delivery", sub: "-", h: 380 },
 ]
 
