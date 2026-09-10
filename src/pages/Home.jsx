@@ -761,6 +761,24 @@ function splitColumns(items, cols) {
   return out
 }
 
+// 高度按「基准列宽」来存：1440 屏下三列时每列正好 448px。
+// 渲染时用 aspect-ratio，所以窗口变宽变窄，格子只是等比缩放，长宽比永远不变。
+const REF_COL_W = 448
+const COL_GAP = 20
+
+// 量一下当前实际列宽，只用来换算拖动的手感（渲染不依赖它，所以不会闪）
+function useColWidth(ref, cols) {
+  const [w, setW] = useState(REF_COL_W)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setW((e.contentRect.width - COL_GAP * (cols - 1)) / cols))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ref, cols])
+  return w
+}
+
 // 列数跟着窗口宽度走（断点和原来的 sm / lg 一致）
 const colCountFor = (w) => (w >= 1024 ? 3 : w >= 640 ? 2 : 1)
 function useColCount() {
@@ -779,6 +797,9 @@ function ExperimentGallery() {
   const dev = import.meta.env.DEV
   const columns = splitColumns(ed.items, useColCount())
   const dnd = useGalleryDnd(ed.move)
+  const wrapRef = useRef(null)
+  const cols = columns.length
+  const scale = useColWidth(wrapRef, cols) / REF_COL_W
   // 每一格在网格里的 (列, 行)，用来算「上下左右」是哪一格
   const pos = new Map()
   columns.forEach((col, c) => col.forEach(({ i }, r) => pos.set(i, [c, r])))
@@ -798,7 +819,7 @@ function ExperimentGallery() {
     <>
       <section className="mt-10 px-5">
         {/* gap-5 = 20px 列间距；每列等宽，格子高度各自不同 */}
-        <div className="flex gap-5">
+        <div ref={wrapRef} className="flex gap-5">
           {columns.map((col, c) => (
           <div key={c} className="min-w-0 flex-1">
           {col.map(({ it, i }) => {
@@ -826,7 +847,10 @@ function ExperimentGallery() {
                       ? 'outline outline-2 outline-offset-2 outline-[#5db83c]'
                       : ''
                 }`}
-                style={{ height: `${it.h}px`, backgroundColor: cover?.bg || BOX_BG }}
+                style={{
+                  aspectRatio: `${REF_COL_W} / ${it.h}`,
+                  backgroundColor: cover?.bg || BOX_BG,
+                }}
               >
                 {cover?.seq && <GalleryCover seq={cover.seq} />}
                 {cover?.layer && <GalleryLayerCover {...cover.layer} />}
@@ -840,6 +864,7 @@ function ExperimentGallery() {
                 {dev && (
                   <HeightHandle
                     height={it.h}
+                    scale={scale}
                     onBegin={ed.begin}
                     onChange={(h) => ed.patch(i, { h })}
                     onEnd={ed.end}

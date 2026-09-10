@@ -158,7 +158,9 @@ export function Editable({ value, onBegin, onCommit, className }) {
 }
 
 // 灰盒下边缘的拖动条：按住上下拖 = 改高度；拖动时显示当前像素值
-export function HeightHandle({ height, onBegin, onChange, onEnd }) {
+// scale = 当前列宽 / 基准列宽。高度按基准列宽存，拖动时换算一下，
+// 这样不管窗口多宽，拖 10px 就是屏幕上真的移动 10px。
+export function HeightHandle({ height, scale = 1, onBegin, onChange, onEnd }) {
   const [dragging, setDragging] = useState(false)
   const start = useRef(null)
   const down = (e) => {
@@ -168,7 +170,8 @@ export function HeightHandle({ height, onBegin, onChange, onEnd }) {
     onBegin()
     document.body.style.userSelect = 'none'
     document.body.style.cursor = 'ns-resize'
-    const move = (ev) => onChange(Math.max(60, Math.round(start.current.h + (ev.clientY - start.current.y))))
+    const move = (ev) =>
+      onChange(Math.max(60, Math.round(start.current.h + (ev.clientY - start.current.y) / scale)))
     const up = () => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
