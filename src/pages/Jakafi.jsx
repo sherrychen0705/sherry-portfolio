@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 import Reveal from '../components/Reveal'
+import PageEditor from '../components/PageEditor'
+import PasswordGate from '../components/PasswordGate'
 
 import hero from '../assets/jakafi/hero.png'
 import lookDark1 from '../assets/jakafi/look-dark-1.png'
@@ -104,10 +106,20 @@ function SectionNav() {
 }
 
 function Jakafi() {
+  const contentRef = useRef(null)
   return (
+    <PasswordGate title="Jakafi — Incyte">
     <div className="min-h-screen bg-white">
       <NavBar />
       <SectionNav />
+
+      {/* 本地文字编辑器：只有 `npm run dev` 时才挂上，正式构建整段会被摇掉，线上看不到。
+          点页面上任意文字直接改，改完点「保存」存进浏览器，刷新不丢。 */}
+      {import.meta.env.DEV && (
+        <PageEditor rootRef={contentRef} storageKey="jakafi" textOnly />
+      )}
+
+      <div ref={contentRef}>
 
       {/* Hero key visual */}
       <div id="intro" className="container-fluid">
@@ -233,8 +245,11 @@ function Jakafi() {
         </Reveal>
       </section>
 
+      </div>
+
       <Footer light />
     </div>
+    </PasswordGate>
   )
 }
 

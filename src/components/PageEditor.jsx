@@ -6,8 +6,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 //              右侧小面板可精确微调 margin / padding / gap
 // 两种改动都存在 localStorage，刷新不丢；「复制给 Claude」把改动导出成文字，
 // 贴给我就能写回真正的代码里。
-const TEXT_KEY = 'heykura-edits-v1'
-const SPACE_KEY = 'heykura-spacing-v1'
 const SIDES = ['Top', 'Right', 'Bottom', 'Left']
 
 const load = (k) => {
@@ -77,9 +75,14 @@ function Num({ label, value, onChange }) {
   )
 }
 
-export default function PageEditor({ rootRef }) {
-  const [mode, setMode] = useState('text') // 'text' | 'space'
-  const [space, setSpace] = useState(() => load(SPACE_KEY))
+// storageKey：每个页面用自己的一份存档，互不串。不填默认 'heykura'（保持老页面原样）。
+// textOnly：只留「改字」，不显示调间距那套。
+export default function PageEditor({ rootRef, storageKey = 'heykura', textOnly = false }) {
+  const TEXT_KEY = `${storageKey}-edits-v1`
+  const SPACE_KEY = `${storageKey}-spacing-v1`
+  const [modeState, setMode] = useState('text') // 'text' | 'space'
+  const mode = textOnly ? 'text' : modeState
+  const [space, setSpace] = useState(() => (textOnly ? {} : load(SPACE_KEY)))
   const [sel, setSel] = useState(null)
   const [hover, setHover] = useState(null)
   const [drag, setDrag] = useState(null)
@@ -395,6 +398,9 @@ export default function PageEditor({ rootRef }) {
 
       {/* 底部工具条 */}
       <div className="spacing-ui fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/85 px-2 py-1.5 text-xs text-white backdrop-blur">
+        {textOnly ? (
+          <span className="px-2 text-[11px] text-white/50">✏️ 改字</span>
+        ) : (
         <div className="flex rounded-full bg-white/15 p-0.5">
           {[
             ['text', '✏️ 改字'],
@@ -410,6 +416,7 @@ export default function PageEditor({ rootRef }) {
             </button>
           ))}
         </div>
+        )}
         <span className="max-w-[190px] text-[11px] text-white/70">
           {tip || (mode === 'text' ? '点任意文字直接改' : sel ? '拖绿色方块改 margin · 按 Option 拖 = padding' : '点一下想调的地方')}
         </span>
