@@ -113,7 +113,7 @@ const newCovers = [
     crossfade: { img: heykuraCover, video: heykuraVideo },
     title: 'Heykura.ai',
     subtitle: 'An AI-powered visual ideation platform that turns vague prompts into clear creative direction.',
-    desc: 'Created an AI toolbar, prompt iteration flow, and conversational AI panel that supported the December 2025 product launch and helped the platform reach 10,000 weekly users within its first week.',
+    desc: 'Created an AI toolbar, prompt iteration flow, and conversational AI panel that supported the December 2025 product launch.',
     num: '02',
     link: '/new-project-5',
     cats: ['Branding', 'Product'],
@@ -404,10 +404,10 @@ const filterOrder = {
 }
 
 // Visual & Campaign 画廊和 Product 卡片区共用的左右留白：
-//   手机（<640px）20px；640px ~ 1440px（含 1440）90px；1440px 以上 180px。
+//   手机（<640px）20px；640px ~ 1440px（含 1440）45px（原来 90，缩小一半）；1440px 以上 180px。
 // 两段范围故意写成互不重叠（max / min 都用 1441px）：Tailwind 排不好 px 和 rem 断点的先后，
 // 重叠的话小的会把大的盖掉。
-const SIDE_PAD = 'px-5 sm:max-[1441px]:px-[90px] min-[1441px]:px-[180px]'
+const SIDE_PAD = 'px-5 sm:max-[1441px]:px-[45px] min-[1441px]:px-[180px]'
 
 function WorkShowcaseNew({ activeFilter }) {
   // 先滤掉 hidden 的（暂时收起来、但数据还留着的项目）
@@ -690,7 +690,7 @@ const coverMatchers = [
   { test: /nexus/i, seq: [{ type: 'img', src: workNexus }], link: '/nexus', desc: "An enterprise-grade, AI-enabled SaaS platform redesigned from IPG Health’s legacy event management system to support end-to-end Healthcare Speaker Bureau program operations." },
   { test: /hive/i, seq: hiveCoverSeq, link: '/new-project', desc: 'I redesigned the visual concept, motion graphics, and merchandise system to elevate the brand identity.' },
   { test: /heartie/i, seq: heartieCoverSeq, bg: '#ffffff', link: '/new-project-4', desc: 'I led the interaction design, graphic artwork, and key visual screens to support Heartie’s gamified educational experience for young children.' },
-  { test: /heykura/i, seq: heykuraCoverSeq, link: '/new-project-5', desc: 'Created an AI toolbar, prompt iteration flow, and conversational AI panel that supported the December 2025 product launch and helped the platform reach 10,000 weekly users within its first week.' },
+  { test: /heykura/i, seq: heykuraCoverSeq, link: '/new-project-5', desc: 'Created an AI toolbar, prompt iteration flow, and conversational AI panel that supported the December 2025 product launch.' },
   { test: /primus/i, seq: primusCoverSeq, link: '/new-project-3', desc: 'Upgraded the brand identity, motion graphics, and digital products for its 2.0 evolution.' },
   { test: /lepal/i, seq: lepalCoverSeq, link: '/lepal', desc: 'I led Lepal.ai’s visual identity, animation, and micro-interaction design from the ground up, helping the app reach 5,000+ weekly active users and increase subscription renewals by 15% within the first two months.' },
   { test: /\bhay\b/i, seq: hayCoverSeq, link: '/new-project-2', desc: 'I led the proposal for a new HYGGE product line for HAY, featuring four cohesive products that bring more vitality to home goods.' }, // 加词边界，免得误伤别的名字

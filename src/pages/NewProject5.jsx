@@ -208,7 +208,7 @@ function NewProject5() {
         <div className="mt-12 grid grid-cols-2 gap-8 md:grid-cols-4">
           {[
             { k: 'ROLE', v: ['Design Lead'] },
-            { k: 'TIMELINE', v: ['Aug 2025 - Jan 2026'] },
+            { k: 'TIMELINE', v: ['Aug 2025 - Dec 2025'] },
             { k: 'TEAM', v: ['1 PM', '1 Designer (me!)', '1 UX Architect', '2 Engineers'] },
             { k: 'SKILLS', v: ['Product Design', 'User Research'] },
           ].map((c) => (
