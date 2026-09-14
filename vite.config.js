@@ -5,11 +5,17 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 // 开发模式专用：画廊编辑器点「保存」时，除了写浏览器 localStorage，
-// 还 POST 一份到这里，落成项目根目录的 gallery-edits.json。
+// 还 POST 一份到这里，落成项目根目录的 json：
+//   Visual & Campaign 画廊 → gallery-edits.json；带 ?name=all 的（All 视图画廊）→ gallery-all-edits.json
 // 这样 Claude 直接读这个文件就能看到你在页面上改的项目名 / 小字 / 高度，
 // 不用再手动复制粘贴。只在 npm run dev 生效，打包上线不受影响。
 function galleryStore() {
-  const file = path.resolve(process.cwd(), 'gallery-edits.json')
+  const fileFor = (url) => {
+    // 只认小写字母/数字/短横线，防止乱写路径
+    const name = new URL(url, 'http://x').searchParams.get('name')
+    const safe = name && /^[a-z0-9-]+$/.test(name) ? `gallery-${name}-edits.json` : 'gallery-edits.json'
+    return path.resolve(process.cwd(), safe)
+  }
   return {
     name: 'gallery-store',
     apply: 'serve',
@@ -22,7 +28,7 @@ function galleryStore() {
           try {
             const data = JSON.parse(body)
             fs.writeFileSync(
-              file,
+              fileFor(req.url),
               JSON.stringify({ savedAt: new Date().toISOString(), items: data }, null, 2),
             )
             res.statusCode = 200
@@ -41,5 +47,5 @@ function galleryStore() {
 export default defineConfig({
   plugins: [react(), tailwindcss(), galleryStore()],
   // 上面那个 json 是编辑器的产物，不该触发页面热重载
-  server: { watch: { ignored: ['**/gallery-edits.json'] } },
+  server: { watch: { ignored: ['**/gallery-edits.json', '**/gallery-*-edits.json'] } },
 })

@@ -8,17 +8,17 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 // 贴给我，我就能写回真正的代码里（和 PageEditor.jsx 是同一套用法）。
 const KEY = 'gallery-edits-v1'
 
-const load = () => {
+const load = (key) => {
   try {
-    const raw = localStorage.getItem(KEY)
+    const raw = localStorage.getItem(key)
     return raw ? JSON.parse(raw) : null
   } catch {
     return null
   }
 }
-const store = (v) => {
+const store = (key, v) => {
   try {
-    localStorage.setItem(KEY, JSON.stringify(v))
+    localStorage.setItem(key, JSON.stringify(v))
   } catch {
     /* ignore */
   }
@@ -72,9 +72,11 @@ function reducer(st, a) {
   }
 }
 
-export function useGalleryEditor(defaults) {
+// storageKey / saveName：同一套编辑器可以给不同的画廊用，各存各的，互不影响
+// （Visual & Campaign 用默认值；All 视图用 'gallery-all-edits-v1' / 'all'）
+export function useGalleryEditor(defaults, { storageKey = KEY, saveName } = {}) {
   const [st, dispatch] = useReducer(reducer, null, () => ({
-    items: merge(defaults, load()),
+    items: merge(defaults, load(storageKey)),
     past: [],
     future: [],
     dirty: false,
@@ -94,14 +96,15 @@ export function useGalleryEditor(defaults) {
   const redo = useCallback(() => dispatch({ type: 'redo' }), [])
   const reset = useCallback(() => dispatch({ type: 'reset', defaults }), [defaults])
   const save = useCallback(() => {
-    store(st.items) // 副作用放在 reducer 外面
+    store(storageKey, st.items) // 副作用放在 reducer 外面
     // 开发模式下再 POST 一份到 dev server，落成项目根目录的 gallery-edits.json，
     // 这样 Claude 能直接读到你改的内容（见 vite.config.js 的 galleryStore 插件）
     if (import.meta.env.DEV) {
-      fetch('/__gallery-save', { method: 'POST', body: JSON.stringify(st.items) }).catch(() => {})
+      const url = saveName ? `/__gallery-save?name=${saveName}` : '/__gallery-save'
+      fetch(url, { method: 'POST', body: JSON.stringify(st.items) }).catch(() => {})
     }
     dispatch({ type: 'saved' })
-  }, [st.items])
+  }, [st.items, storageKey, saveName])
 
   return {
     items: st.items,
@@ -121,7 +124,9 @@ export function useGalleryEditor(defaults) {
 
 // 可直接点着改的文字。外部值变了（撤销 / 恢复默认）而且当前没在编辑，才回写 DOM，
 // 这样打字时光标不会被 React 重渲染打断。
-export function Editable({ value, onBegin, onCommit, className }) {
+// placeholder：内容为空时显示的灰色提示字。
+// 点击时 preventDefault：这些文字现在放在可点的卡片（链接）里，点它是为了改字，不能触发跳转。
+export function Editable({ value, onBegin, onCommit, className, placeholder }) {
   const ref = useRef(null)
   const last = useRef(value)
   useEffect(() => {
@@ -137,6 +142,8 @@ export function Editable({ value, onBegin, onCommit, className }) {
       contentEditable
       suppressContentEditableWarning
       spellCheck={false}
+      data-placeholder={placeholder}
+      onClick={(e) => e.preventDefault()}
       onFocus={onBegin}
       onBlur={(e) => {
         const t = e.currentTarget.textContent.trim()
@@ -150,11 +157,24 @@ export function Editable({ value, onBegin, onCommit, className }) {
         }
         if (e.key === 'Escape') e.currentTarget.blur()
       }}
-      className={`cursor-text rounded-[2px] outline-none ring-offset-2 transition-shadow hover:ring-1 hover:ring-[#5db83c]/40 focus:ring-2 focus:ring-[#5db83c] ${className}`}
+      className={`cursor-text rounded-[2px] outline-none ring-offset-2 transition-shadow hover:ring-1 hover:ring-[#5db83c]/40 focus:ring-2 focus:ring-[#5db83c] empty:before:text-neutral-300 empty:before:content-[attr(data-placeholder)] ${className}`}
     >
       {value}
     </div>
   )
+}
+
+// 拖完松手时，浏览器会在「按下的位置」和「松开的位置」的共同外层上补发一次 click。
+// 现在整张卡片是链接，这一下 click 就会把你带进项目页。
+// 所以每次拖动结束，把紧接着的那一次 click 吞掉；如果松手没产生 click，
+// 下一轮事件循环就把拦截撤掉，不会误伤你之后正常的点击。
+function swallowNextClick() {
+  const kill = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  window.addEventListener('click', kill, { capture: true, once: true })
+  setTimeout(() => window.removeEventListener('click', kill, { capture: true }), 0)
 }
 
 // 灰盒下边缘的拖动条：按住上下拖 = 改高度；拖动时显示当前像素值
@@ -177,6 +197,7 @@ export function HeightHandle({ height, scale = 1, onBegin, onChange, onEnd }) {
       window.removeEventListener('pointerup', up)
       document.body.style.userSelect = ''
       document.body.style.cursor = ''
+      swallowNextClick()
       setDragging(false)
       onEnd()
     }
@@ -304,6 +325,7 @@ export function useGalleryDnd(move) {
       window.removeEventListener('pointerup', up)
       document.body.style.userSelect = ''
       document.body.style.cursor = ''
+      swallowNextClick()
       const { from, to } = cur.current
       if (to != null && to !== from) move(from, to)
       setDragging(null)

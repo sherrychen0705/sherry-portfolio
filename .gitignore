@@ -31,3 +31,4 @@ src/assets/heartie/*.mov
 
 # 画廊编辑器在开发模式下的产物（不进仓库）
 gallery-edits.json
+gallery-*-edits.json

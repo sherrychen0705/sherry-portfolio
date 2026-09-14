@@ -425,9 +425,21 @@ body {
   50% { transform: translate(0.28em, -50%); }
 }
 
+/* 标题外面的固定高度舞台：图片弹出时 .ir-box 会变高（1.95em 的图 + 上下 padding），
+   以前这会把整个 hero 撑高 / 缩回，页面每轮动画都上下跳一下。
+   现在舞台高度按「弹出图片时」的最大高度写死（2.65em 盒子 + 0.5em 底边距），盒子在里面上下居中变化，外面不再受影响。 */
+.ir-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: clamp(54px, 6.3vw, 72px);
+  height: 3.15em;
+}
+
 /* 手机端：整段 IntroReveal 交互缩放到容器内完整可见（桌面大尺寸不变） */
 @media (max-width: 768px) {
-  .ir-box {
+  .ir-box,
+  .ir-stage {
     font-size: clamp(12px, 4.9vw, 34px);
   }
 }
@@ -468,3 +480,7 @@ body {
 .font-display {
   font-family: 'Pathway Extreme', sans-serif;
 }
+
+/* 广告牌里的 About 滚动层：隐藏系统滚动条（用自绘的、缩在白框里的那条） */
+.bb-scroll { scrollbar-width: none; }
+.bb-scroll::-webkit-scrollbar { display: none; }

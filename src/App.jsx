@@ -30,9 +30,10 @@ function App() {
       {/* <LoadingScreen /> */}
       <CustomCursor />
       <Routes>
+        {/* 三个地址用同一个 key：点 filter 切换地址时页面不会整个重建，山丘动画和滚动位置都保留 */}
         <Route path="/" element={<Home key="home" />} />
-        <Route path="/product" element={<Home key="home-product" defaultFilter="Product" />} />
-        <Route path="/branding" element={<Home key="home-branding" defaultFilter="Branding" />} />
+        <Route path="/product" element={<Home key="home" />} />
+        <Route path="/branding" element={<Home key="home" />} />
         <Route path="/aboutme" element={<AboutMe />} />
         <Route path="/hiveai" element={<HiveAi />} />
         <Route path="/nexus" element={<Nexus />} />
