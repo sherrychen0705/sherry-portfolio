@@ -782,11 +782,24 @@ const galleryDefaults = [
 
 // All 视图画廊：在 Visual & Campaign 那一组的基础上，补上 Product 独有的项目，用同一套画廊排版。
 // （Heykura 本来就同时属于两类，已经在里面了，不重复加；OHDI 目前隐藏，不加。）
-// 高度按原封面图的比例换算：NEXUS 700×585、HIVE 700×622，基准列宽 448。
+// 顺序 / 高度照本地画廊编辑器里保存的那版写死（线上没有本地存档，只认这里）。
 const allGalleryDefaults = [
-  ...galleryDefaults,
-  { name: 'NEXUS', sub: 'Enterprise Platform: end-to-end Speaker Bureau program operations', h: 374 },
-  { name: 'HIVE', sub: 'AI tool for branching ideas and collecting interconnected thoughts.', h: 398 },
+  { name: "HIVE", sub: "AI tool for branching ideas and collecting interconnected thoughts.", h: 398 },
+  { name: "HIVE.ai Rebranding", sub: "Visual identity and concept redesign for Hive,ai", h: 305 },
+  { name: "Primus 2.0", sub: "Visual identity and concept redesign for Primus", h: 345 },
+  { name: "Heykura.ai", sub: "An AI-powered visual ideation platform that turns vague prompts into clear creative direction", h: 394 },
+  { name: "Flowith", sub: "Website redesign for Flowith, an AI workspace built on an infinite canvas", h: 458 },
+  { name: "See What They See", sub: "Client project at IPG Health - campaign for Parkinson's disease awareness", h: 257 },
+  { name: "Heartie", sub: "Product ecosystem designed for children age 9-14 with heart conditions", h: 349 },
+  { name: "NEXUS", sub: "Enterprise Platform: end-to-end Speaker Bureau program operations", h: 374 },
+  { name: "Niktimvo - Incyte", sub: "Client project at Omnicom Health", h: 217 },
+  { name: "Jakafi - Incyte", sub: "Client project at Omnicom Health", h: 233 },
+  { name: "Kevzara - Sanofi", sub: "Client project at Omnicom Health", h: 220 },
+  { name: "HAY - hygge", sub: "HYGGE product line for HAY", h: 321 },
+  { name: "Lepal", sub: "Mental wellness companion app created for Gen-Z", h: 402 },
+  { name: "SolarX", sub: "-", h: 562 },
+  { name: "Soundscape", sub: "-", h: 596 },
+  { name: "Food Delivery", sub: "-", h: 297 },
 ]
 
 // 画廊分列：**已有格子的位置永远不动**。
