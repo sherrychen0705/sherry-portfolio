@@ -137,8 +137,6 @@ const newCovers = [
     num: '04',
     link: '/new-project-6',
     cats: ['Product'], // OHDI 不属于 Visual Branding，只在 Product/All 里显示
-    hidden: true, // 暂时不展示（All / Product 里都不出现）。想拿回来把这行删掉就行，
-                  // 数据、封面图、路由 /new-project-6 全都留着。
     imgAspect: '6 / 5',
   },
   {
@@ -687,6 +685,7 @@ const coverMatchers = [
   // Product 的 HIVE：名字只叫 "HIVE"（或 "HIVE.ai"）才算，必须放在下面 /hive/i 之前，
   // 不然会被 HIVE.ai Rebranding 那条抢走
   { test: /^\s*hive(\.ai)?\s*$/i, seq: [{ type: 'img', src: workHiveai }], link: '/hiveai', desc: "I led the design of an AI tool that helps researchers and learners bridge information gaps, spark inspiration, and independently explore new ideas." },
+  { test: /ohdi/i, seq: [{ type: 'img', src: ohdiCover }], link: '/new-project-6', desc: 'Redesigned two user flows for monitoring competitor narratives and predicting message resonance across HCP audiences and channels.' },
   { test: /nexus/i, seq: [{ type: 'img', src: workNexus }], link: '/nexus', desc: "An enterprise-grade, AI-enabled SaaS platform redesigned from IPG Health’s legacy event management system to support end-to-end Healthcare Speaker Bureau program operations." },
   { test: /hive/i, seq: hiveCoverSeq, link: '/new-project', desc: 'I redesigned the visual concept, motion graphics, and merchandise system to elevate the brand identity.' },
   { test: /heartie/i, seq: heartieCoverSeq, bg: '#ffffff', link: '/new-project-4', desc: 'I led the interaction design, graphic artwork, and key visual screens to support Heartie’s gamified educational experience for young children.' },
@@ -781,10 +780,11 @@ const galleryDefaults = [
 ]
 
 // All 视图画廊：在 Visual & Campaign 那一组的基础上，补上 Product 独有的项目，用同一套画廊排版。
-// （Heykura 本来就同时属于两类，已经在里面了，不重复加；OHDI 目前隐藏，不加。）
+// （Heykura 本来就同时属于两类，已经在里面了，不重复加。）
 // 顺序 / 高度照本地画廊编辑器里保存的那版写死（线上没有本地存档，只认这里）。
 const allGalleryDefaults = [
   { name: "HIVE", sub: "AI tool for branching ideas and collecting interconnected thoughts.", h: 398 },
+  { name: "OHDI.ai, powered by OMNI ✦", sub: "Omnicom’s AI-powered competitive messaging intelligence platform helps pharma teams monitor market shifts.", h: 374 },
   { name: "HIVE.ai Rebranding", sub: "Visual identity and concept redesign for Hive,ai", h: 305 },
   { name: "Primus 2.0", sub: "Visual identity and concept redesign for Primus", h: 345 },
   { name: "Heykura.ai", sub: "An AI-powered visual ideation platform that turns vague prompts into clear creative direction", h: 394 },
