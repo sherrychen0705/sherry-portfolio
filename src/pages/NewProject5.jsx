@@ -193,12 +193,10 @@ function NewProject5() {
         <Body className="mt-4">
           Heykura.ai is an AI driven visual search, ideation, and prototyping platform that bridges the
           communication gap between non designers and designers. It streamlines the repetitive and often
-          unproductive 0→0.5 stage, when non designers struggle to translate vague ideas into effective
-          creative prompts. KURA helps users explore and clarify their vision, then transforms it into
-          design ready visuals that designers can immediately execute, making early stage collaboration
-          more effective for everyone involved. Heykura.ai launched in December 2025 and reached 10,000
-          weekly users within its first week. Today, it helps tech startups curate marketing assets while
-          cutting production time in half.
+          unproductive 0→0.5 stage, when non designers struggle to translate vague ideas into effective creative
+          prompts. KURA helps users explore and clarify their vision, then transforms it into design ready visuals
+          that designers can immediately execute, making early stage collaboration more effective for everyone
+          involved.
         </Body>
         <Body className="mt-3">
           Please note that this was a client project, so only a limited portion of the design process can
@@ -241,9 +239,9 @@ function NewProject5() {
           What if non-designers could describe what they want, without knowing how to describe it?
         </H2>
         <Body className="mt-5">
-          Anyone can tell a good design from a bad one. Almost no one can say why. That gap—between
-          recognizing and articulating—is where creative work breaks down: between clients and designers,
-          and between people and the AI tools built to serve them.
+          Anyone can tell a good design from a bad one. Almost no one can say why. That gap between recognizing
+          and articulating is where creative work breaks down: between clients and designers, and between people
+          and the AI tools built to serve them.
         </Body>
       </Reveal>
 
@@ -286,15 +284,15 @@ function NewProject5() {
       {/* OUTCOMES */}
       <Reveal id="outcomes" className="container-fluid mt-24 text-left">
         <Label>OUTCOMES</Label>
-        <H2 className="mt-4">We launched in Dec 2025 and have reached 3000 users within the first week!</H2>
+        <H2 className="mt-4">We launched in Dec 2025 and have reached 3,000 users within the first week!</H2>
         <Ph n={5} img={img5} imgClass="max-w-[48%]" ratio="16 / 6" className="mt-8 w-full" />
       </Reveal>
 
       {/* 绿色金句 */}
       <Reveal className="container-fluid mt-24 text-left">
         <GreenH2 className="max-w-4xl">
-          Non-designers have high visual judgment and near-zero visual vocabulary. Every existing tool
-          assumes the opposite.
+          Non-designers have high visual judgment and near-zero visual vocabulary. But many existing tool assumes
+          the opposite.
         </GreenH2>
       </Reveal>
 
@@ -304,9 +302,10 @@ function NewProject5() {
         <H2 className="mt-4">As designers, we were the wrong people to design this.</H2>
         <Body className="mt-5">
           We ran a test on ourselves: describe a website you want, without using a single design term. No
-          "minimal," no "editorial," no "grid." It was almost impossible—and it made obvious how much of
-          our workflow runs on vocabulary our clients don't have. We also sat with non-designers as they
-          used AI tools cold. The most common thing they typed first was nothing at all.
+          "minimal," no "editorial," no "grid." It was almost impossible, and it made obvious how much of our
+          workflow runs on vocabulary our clients don't have. So the main focus of our research is to observe how
+          non-designers enter prompts, including the words they use, the instructions they give, and how they
+          interact with AI tools after submitting the prompt.
         </Body>
         <Ph n={6} img={img6} ratio="16 / 7" className="mt-8 w-full" />
       </Reveal>
@@ -316,8 +315,8 @@ function NewProject5() {
         <Label>UNDERSTANDING USERS</Label>
         <H2 className="mt-4">People know what they like. They just can't say it.</H2>
         <Body className="mt-5">
-          We watched people use the tools they already had—Pinterest, AI image generators, and design
-          studios like ours. And these happened:
+          We watched people use the tools they already had — Pinterest, AI image generators, and design studios
+          like ours. And these happened:
         </Body>
         <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
           {[
@@ -365,13 +364,17 @@ function NewProject5() {
           <div>
             <Ph n={11} img={img11} ratio="3 / 2" />
             <Body className="mt-5">
-              Inspiration platforms（Pinterest, Savee）— 海量素材，但检索依赖关键词，而关键词正是用户缺的。收藏夹越大，方向越模糊。
+              Inspiration platforms like Pinterest and Savee offer massive amounts of visual material, but search
+              depends on keywords, and keywords are exactly what users often lack. The larger the collection becomes,
+              the more unclear the direction gets.
             </Body>
           </div>
           <div>
             <Ph n={12} img={img12} ratio="3 / 2" />
             <Body className="mt-5">
-              Generative AI tools（c）— 能力极强，门槛全压在 prompt 上。风格词汇是隐性知识，非设计师无从习得。
+              Generative AI tools like ChatGPT are extremely powerful, but the entire barrier to entry is
+              concentrated in the prompt. Style vocabulary is tacit knowledge, and non-designers have no clear way to
+              acquire it.
             </Body>
           </div>
         </div>
@@ -387,7 +390,7 @@ function NewProject5() {
               </H2>
               <Arrow />
               <div className="md:flex-1">
-                <GreenH2>How might we do better than a prompt box—when the model is the same?</GreenH2>
+                <GreenH2>How might we do better than a prompt box when the model is the same?</GreenH2>
                 <p className="mt-4" style={{ color: GREEN }}>
                   The bottleneck was never the model. It was the input. So instead of making a better
                   generator, we made a better way to arrive at the prompt.
@@ -421,7 +424,7 @@ function NewProject5() {
                 n: 14,
                 img: img14,
                 t: 'Idea 2',
-                d: 'Each page will be a prompt that requires users to provide additional information, completed through selection and file uploads. However, it is still difficult to modify the information afterward, and it is hard to see the full picture of all the information at once.',
+                d: 'Each page will be a prompt that requires users to provide additional information, completed through selection and file uploads. But it is still difficult to modify the information afterward, and it is hard to see the full picture of all the information at once.',
               },
               {
                 n: 15,
@@ -483,10 +486,10 @@ function NewProject5() {
           <p className="font-semibold" style={{ color: GREEN }}>03</p>
           <H2 className="mt-2">Search Tags</H2>
           <Body className="mt-4">
-            "Style is a hierarchy, not a keyword." After users select an aesthetic in the prompt, the top
-            bar will display different sub-style elements within that aesthetic for them to choose from.
-            This guides users toward more precise decisions. This thinking model of gradually narrowing
-            down choices also mirrors the way creative professionals think.
+            Style is a hierarchy, not a keyword. After users select an aesthetic in the prompt, the top bar will
+            display different sub-style elements within that aesthetic for them to choose from. This guides users
+            toward more precise decisions. This thinking model of gradually narrowing down choices also mirrors the
+            way creative professionals think.
           </Body>
           <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
             <div>

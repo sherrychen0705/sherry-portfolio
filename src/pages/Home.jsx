@@ -461,7 +461,8 @@ const FILTER_BG = `linear-gradient(to bottom, ${[
 function WorkShowcase({ activeFilter, setActiveFilter }) {
   const current = filterTags.find((t) => t.value === activeFilter)
   return (
-    <div className="relative" style={{ paddingBottom: FILTER_GAP }}>
+    // data-cursor：filter 这一条也算封面的一部分，鼠标在这里时标签继续显示（见 CustomCursor.jsx）
+    <div data-cursor="" className="relative" style={{ paddingBottom: FILTER_GAP }}>
       {/* 渐变底：绝对定位，往下伸出去一截，垫在卡片后面 */}
       <div
         aria-hidden
@@ -1110,7 +1111,9 @@ function Home() {
     <div className="min-h-screen bg-white">
       <NavBar fixed />
       {/* 外层铺天空灰：山丘画布天空透明，往上挪进 hero 以后，底下露出来的都是这个颜色 */}
-      <div style={{ backgroundColor: '#ededed', overflowX: 'clip' }}>
+      {/* data-cursor：鼠标停在首页封面（标题 + 山丘广告牌）这块区域里时，
+          自定义鼠标才显示 "Let's Gooo" 标签；往下滚到项目区就淡出（见 CustomCursor.jsx） */}
+      <div data-cursor="" style={{ backgroundColor: '#ededed', overflowX: 'clip' }}>
       {/* 顶部白→灰渐变：与山丘天空色 (#ededed) 无缝衔接 */}
       <div style={{ background: 'linear-gradient(to bottom, #ffffff 0%, #ffffff 22%, #ededed 100%)', overflowX: 'clip' }}>
         <div className="h-24" />

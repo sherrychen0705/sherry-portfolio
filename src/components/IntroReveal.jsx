@@ -60,11 +60,7 @@ function IntroReveal() {
   return (
     <div className="ir-wrap">
       <div className={`ir-box${n > 0 ? ' ir-active' : ''}${reveal ? ' ir-reveal' : ''}`}>
-        {/* 四角选择手柄 */}
-        <span className="ir-h ir-h-tl" />
-        <span className="ir-h ir-h-tr" />
-        <span className="ir-h ir-h-bl" />
-        <span className="ir-h ir-h-br" />
+        {/* 四角那四个会乱跳的小方块已去掉；样式（.ir-h / ir-glitch-*）还留在 index.css，想要可以再加回来 */}
 
         <span className="ir-brace ir-brace-l">{'{'}</span>
         {reveal ? (

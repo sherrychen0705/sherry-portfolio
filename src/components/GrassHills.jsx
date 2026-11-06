@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { setCanvasProbe } from './canvasProbe'
 
 // 广告牌上自己写的字用系统字体（苹果设备上是 SF Pro，和广告牌图片里的字一致）
 const CTA_FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Helvetica Neue', Arial, sans-serif"
@@ -891,14 +892,21 @@ function GrassHills({
     let targetX = 0, targetY = 0, curX = 0, curY = 0
     // 监听挂在 mount（外层容器）上，而非 canvas：鼠标移到方块（容器的子元素）上时
     // 不会触发容器的 pointerleave，避免「pan→方块移动→leave→回正」的抖动死循环。
+    // 鼠标在画布里的像素位置（含 devicePixelRatio），给「读一个像素判断明暗」用
+    let probeX = -1
+    let probeY = -1
     const onMove = (e) => {
       const r = mount.getBoundingClientRect()
       targetX = ((e.clientX - r.left) / r.width) * 2 - 1
       targetY = ((e.clientY - r.top) / r.height) * 2 - 1
+      const dpr = renderer.getPixelRatio()
+      probeX = Math.round((e.clientX - r.left) * dpr)
+      probeY = Math.round((e.clientY - r.top) * dpr)
     }
     const onLeave = () => {
       targetX = 0
       targetY = 0
+      probeX = -1
     }
     const el = renderer.domElement
     mount.addEventListener('pointermove', onMove)
@@ -913,6 +921,8 @@ function GrassHills({
 
     // --- 渲染循环（切到后台标签自动暂停，省电） ---
     const clock = new THREE.Clock()
+    const probePixel = new Uint8Array(4) // 读像素用的小缓冲，只建一次
+    let probeFrame = 0 // 帧计数：每 4 帧才读一次像素
     const occRay = new THREE.Raycaster()
     const occDir = new THREE.Vector3()
     const look = new THREE.Vector3(0, 2, -30)
@@ -1048,6 +1058,23 @@ function GrassHills({
       }
       if (billboardRefs.grassUniforms && !REDUCE) billboardRefs.grassUniforms.uTime.value = t
       renderer.render(scene, camera)
+
+      // 刚画完，趁缓冲还在，读鼠标底下那一个像素，告诉自定义鼠标这里是深是浅。
+      // 每 4 帧一次、只读 1 像素；鼠标不在画布上就不读。
+      if (probeX >= 0 && probeFrame++ % 4 === 0) {
+        const gl = renderer.getContext()
+        const w = gl.drawingBufferWidth
+        const h = gl.drawingBufferHeight
+        if (probeX < w && probeY < h) {
+          gl.readPixels(probeX, h - probeY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, probePixel)
+          const [pr, pg, pb, pa] = probePixel
+          setCanvasProbe(renderer.domElement, {
+            // 天空是透明的（alpha 很低）→ 交回给外面按页面背景色判断
+            dark: pa > 120 ? (0.2126 * pr + 0.7152 * pg + 0.0722 * pb) / 255 < 0.5 : null,
+            t: performance.now(),
+          })
+        }
+      }
 
       // 聚焦快结束时，把内容层淡入、盖在白色画面的屏幕位置上（相机停住了，位置基本不变；pan / 缩放窗口也会跟上）
       const ov = overlayRef.current
