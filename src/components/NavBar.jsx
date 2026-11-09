@@ -4,7 +4,8 @@ import { Link, useLocation } from 'react-router-dom'
 const ACTIVE_GREEN = '#5db83c'
 
 // 深色背景页面：NavBar 自动切成白字 + 深色毛玻璃条。新增深色页记得加进来。
-const DARK_ROUTES = ['/aboutme']
+// （/aboutme 现在是首页广告牌聚焦的画面，背景是浅色，所以不在这里了）
+const DARK_ROUTES = []
 
 // 实时时钟：按访客本地时区显示时间，不含秒
 function Clock({ dark }) {

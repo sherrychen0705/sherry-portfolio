@@ -86,6 +86,8 @@ function GrassHills({
   billboardProgress, // () => 0~1：广告牌「立起来」的进度，每帧读一次（0 = 低低地斜在草里，1 = 完全立好）
   onFocusChange, // (focused) => void：点击广告牌进入 / 退出聚焦时通知外面
   billboardContent = null, // 聚焦（zoom in）后铺在广告牌画面上的网页内容，可以在里面上下滚动
+  autoFocus = null, // true/false：从外面控制广告牌聚焦（比如导航栏点 About 就直接进聚焦画面）
+  layoutShift = 0, // 外面把画布整体上下挪了多少（首页标题测量完会挪一次）：聚焦状态下跟着重新居中
 }) {
   const mountRef = useRef(null)
   const onSkylineRef = useRef(onSkyline)
@@ -93,7 +95,9 @@ function GrassHills({
   const progressRef = useRef(billboardProgress)
   progressRef.current = billboardProgress
   // 点击广告牌 → 镜头推近、正对广告牌（focused）；再点空白 / Esc / Back 退出
-  const [focused, setFocused] = useState(false)
+  const [focused, setFocused] = useState(autoFocus === true)
+  // 挂载时就是聚焦状态吗（从别的页面点 About 直接进来）→ 场景一建好就是对焦画面，省掉一次镜头飞行
+  const mountFocusRef = useRef(autoFocus === true)
   const focusTargetRef = useRef(0)
   const focusApiRef = useRef({})
   const overlayRef = useRef(null) // 聚焦后盖在广告牌画面上的内容层（外层：定位 + 圆角裁切）
@@ -130,6 +134,11 @@ function GrassHills({
   const CARD_H = 250
 
   useEffect(() => {
+    // 建这个场景（地形 + 24 万根草 + 阴影）要几百毫秒，同步建会把页面切换卡住。
+    // 先让浏览器把新页面画出来，隔两帧再建，切过来就不顿了。
+    let cancelled = false
+    let dispose = null
+    const build = () => {
     const mount = mountRef.current
     if (!mount) return
 
@@ -152,6 +161,8 @@ function GrassHills({
       renderer.shadowMap.type = THREE.PCFSoftShadowMap
     }
     renderer.domElement.style.display = 'block'
+    renderer.domElement.style.opacity = '0' // 第一帧画完再淡入
+    renderer.domElement.style.transition = 'opacity 260ms ease'
     mount.appendChild(renderer.domElement)
 
     // --- 场景 / 雾 / 相机 ---
@@ -283,8 +294,9 @@ function GrassHills({
       const BINS = 240
       const ridge = new Float32Array(BINS).fill(Infinity)
       const v = new THREE.Vector3()
+      // z 方向隔一个点采一次：山脊线肉眼看不出差别，这一步能省掉一半时间
       for (let x = -100; x <= 100; x += 1) {
-        for (let z = -100; z <= 100; z += 1) {
+        for (let z = -100; z <= 100; z += 2) {
           v.set(x, heightAt(x, z), z)
           v.project(c)
           if (v.z > 1 || v.x < -1 || v.x > 1) continue
@@ -328,169 +340,163 @@ function GrassHills({
       })
       bbDispose.push(steel, steelDark)
 
-      // 画面：暖白底 + 很淡的光照不均和纸面颗粒 + 文案。
-      // 文字用 Figtree，字体是 CSS 异步加载的，所以先画一遍，等字体到了再重画一遍。
-      const FW = 2048
-      const FH = Math.round((FW * 5.7) / 12.4)
-      const fc2 = document.createElement('canvas')
-      fc2.width = FW
-      fc2.height = FH
-      const c2 = fc2.getContext('2d')
-      const grain = c2.createImageData(FW, FH) // 颗粒只算一次
-      for (let i = 0; i < grain.data.length; i += 4) {
-        const n = 128 + (Math.random() - 0.5) * 14
-        grain.data[i] = grain.data[i + 1] = grain.data[i + 2] = n
-        grain.data[i + 3] = 26
-      }
-      const grainCanvas = document.createElement('canvas')
-      grainCanvas.width = FW
-      grainCanvas.height = FH
-      grainCanvas.getContext('2d').putImageData(grain, 0, 0)
+      // ===== 广告牌：上下两块牌子 =====
+      //  · 上牌（大）：自我介绍，由两根立柱托着，底下是检修走道
+      //  · 下牌（小）：Welcome to sherry-land + 箭头 + 三张圆形照片，
+      //    用两条链子吊在走道横梁下面，会跟着风轻轻晃（见渲染循环里的 hang 摆动）
+      // 文案都在 Home.jsx 的 billboard.face 里改。
+      const W = 10.6 // 上牌画面宽
+      const PAD_Y = 0.62 // 上牌文字上下各留多少（世界单位；原来是 1.23，缩一半）
+      const W2 = 7.2 // 下牌画面宽
+      const H2 = 2.9 // 下牌画面高
+      const POLE_H = billboard.pole ?? 4.8 // 立柱露出地面的高度（到走道下方）
+      const D = 0.42 // 面板厚度
+      const BORDER = 0.3 // 外框宽度
+      const RADIUS = 0.75 // 圆角
+      const BORDER_SIDE = 0.15 // 下牌（吊着那块）的边框，比上牌细一半
+      const TOTAL_W = W
+      const MAIN_X = 0
+      const CHAIN_LEN = 0.68 // 链子长度（两块牌子之间的距离）
+      const CHAIN_X = W2 * 0.3 // 两条链子离中线多远
+      const HANG_Z = 0.9 // 下牌挂得比上牌靠前，链子才不会被走道射灯挡住
 
-      // 一行里可以混排不同颜色的片段；自动按宽度换行，整段居中
-      const drawRich = (segments, font, lineH, y, maxW) => {
-        c2.font = font
+      const FACE = billboard.face || { intro: [], cta: { lines: [] }, photos: [] }
+      const FACE_BLUE = FACE.blue || '#239fe4'
+
+      // 一段文字：一行里可以混排不同颜色的片段，按宽度自动换行，左对齐。返回这段占的高度。
+      // 片段写成 ['文字', '颜色']；写成 { inline: 'wave', w: 1 } 则空出一块正方形，
+      // 留给会动的小面片（比如挥手的手），位置记到 boxes 里，外面照着放 mesh。
+      const drawPara = (ctx, segments, font, lineH, x, y, maxW, boxes, measureOnly) => {
+        ctx.font = font
         const words = []
-        segments.forEach(([text, color]) => {
-          // \n = 强制换行
-          text.split(/(\n|\s+)/).forEach((w) => w && words.push([w, color]))
+        segments.forEach((seg) => {
+          if (seg && seg.inline) {
+            words.push({ inline: seg.inline, ww: lineH * (seg.w ?? 1) })
+            return
+          }
+          const [text, color] = seg
+          text.split(/(\s+)/).forEach((w) => w && words.push({ w, color }))
         })
         const lines = [[]]
         let lineW = 0
-        words.forEach(([w, color]) => {
-          if (w === '\n') {
-            lines.push([])
-            lineW = 0
-            return
-          }
-          const ww = c2.measureText(w).width
-          if (lineW + ww > maxW && /\S/.test(w) && lines[lines.length - 1].length) {
+        words.forEach((it) => {
+          const ww = it.inline ? it.ww : ctx.measureText(it.w).width
+          const solid = it.inline || /\S/.test(it.w)
+          if (lineW + ww > maxW && solid && lines[lines.length - 1].length) {
             lines.push([])
             lineW = 0
           }
-          if (!lines[lines.length - 1].length && !/\S/.test(w)) return
-          lines[lines.length - 1].push([w, color, ww])
+          if (!lines[lines.length - 1].length && !solid) return
+          lines[lines.length - 1].push({ ...it, ww })
           lineW += ww
         })
         lines.forEach((ln, li) => {
-          while (ln.length && !/\S/.test(ln[ln.length - 1][0])) ln.pop()
-          const total = ln.reduce((sum, [, , ww]) => sum + ww, 0)
-          let x = (FW - total) / 2
-          ln.forEach(([w, color, ww]) => {
-            c2.fillStyle = color
-            c2.fillText(w, x, y + li * lineH)
-            x += ww
+          while (ln.length && !ln[ln.length - 1].inline && !/\S/.test(ln[ln.length - 1].w)) ln.pop()
+          let cx = x
+          const baseline = y + li * lineH
+          ln.forEach((it) => {
+            if (!measureOnly) {
+              if (it.inline) {
+                boxes?.push({ name: it.inline, cx: cx + it.ww / 2, cy: baseline - lineH * 0.3, size: it.ww })
+              } else {
+                ctx.fillStyle = it.color
+                ctx.fillText(it.w, cx, baseline)
+              }
+            }
+            cx += it.ww
           })
         })
         return lines.length * lineH
       }
 
-      const drawFace = () => {
-        c2.clearRect(0, 0, FW, FH)
-        c2.fillStyle = '#efefec'
-        c2.fillRect(0, 0, FW, FH)
-        const lg = c2.createRadialGradient(FW * 0.3, FH * 0.25, 60, FW * 0.42, FH * 0.48, FW * 0.8)
-        lg.addColorStop(0, 'rgba(255,255,255,0.55)')
-        lg.addColorStop(1, 'rgba(120,120,118,0.24)')
-        c2.fillStyle = lg
-        c2.fillRect(0, 0, FW, FH)
-
-        const L = billboard.lines
-        if (billboard.image && faceImg?.complete && faceImg.naturalWidth) {
-          // 图片整张放进画面（contain），底色用白，和图片自带的白底接上
-          c2.fillStyle = '#ffffff'
-          c2.fillRect(0, 0, FW, FH)
-          const pad = FW * 0.035
-          const k = Math.min((FW - pad * 2) / faceImg.naturalWidth, (FH - pad * 2) / faceImg.naturalHeight)
-          const iw = faceImg.naturalWidth * k
-          const ih = faceImg.naturalHeight * k
-          const ox = (FW - iw) / 2
-          const oy = (FH - ih) / 2
-          faceLayout = { k, ox, oy }
-          const cta = billboard.cta
-          if (cta) {
-            // 原图右边那块（旧的箭头 + 文案）不画，换成自己写的字；箭头是单独一块会动的小面片（见下面 arrow）
-            c2.drawImage(faceImg, 0, 0, cta.cropX, faceImg.naturalHeight, ox, oy, cta.cropX * k, ih)
-            c2.fillStyle = cta.color
-            c2.textAlign = 'left'
-            c2.textBaseline = 'alphabetic'
-            c2.font = `${cta.fontWeight ?? 400} ${cta.fontSize * k}px ${CTA_FONT}`
-            cta.lines.forEach((line, i) => c2.fillText(line, ox + cta.textX * k, oy + cta.baselines[i] * k))
-          } else {
-            c2.drawImage(faceImg, ox, oy, iw, ih)
-          }
-          return // 图片模式：保持纯白底，不叠光照渐变和颗粒
-        } else if (L) {
-          c2.textBaseline = 'alphabetic'
-          const maxW = FW * 0.8
-          let y = FH * 0.34
-          c2.font = '600 150px Figtree, sans-serif'
-          c2.fillStyle = '#151515'
-          c2.textAlign = 'left'
-          const hw = c2.measureText(L.headline).width
-          c2.fillText(L.headline, (FW - hw) / 2, y)
-          y += 118
-          y += drawRich([[L.sub, '#3a3a3a']], '400 66px Figtree, sans-serif', 84, y, maxW)
-          y += 40
-          drawRich(L.meta, '400 50px Figtree, sans-serif', 68, y, maxW)
-        }
-
-        c2.drawImage(grainCanvas, 0, 0)
-        // 底边一道很细的脏污阴影（雨水 / 灰尘常积在下沿）
-        const dg = c2.createLinearGradient(0, FH * 0.9, 0, FH)
-        dg.addColorStop(0, 'rgba(90,90,90,0)')
-        dg.addColorStop(1, 'rgba(90,90,90,0.18)')
-        c2.fillStyle = dg
-        c2.fillRect(0, FH * 0.9, FW, FH * 0.1)
+      // 一块牌子的画面贴图。PX = 每个世界单位多少像素，两块牌子用同一个精度，
+      // 所以两边的字号写成「世界单位」就能保证大小一致。
+      const PX = 260
+      const mkFace = (w, h) => {
+        const cv = document.createElement('canvas')
+        cv.width = Math.round(w * PX)
+        cv.height = Math.round(h * PX)
+        const tex = new THREE.CanvasTexture(cv)
+        tex.colorSpace = THREE.SRGBColorSpace
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
+        // 画面不受场景光照影响（MeshBasicMaterial + 不做色调映射），白底就是纯白
+        const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })
+        bbDispose.push(tex, mat)
+        return { ctx: cv.getContext('2d'), tex, mat, FW: cv.width, FH: cv.height, w, h }
       }
-      let faceImg = null
-      let faceLayout = null // 图片在画面贴图里的缩放和偏移，箭头面片按它定位
-      drawFace()
-      const faceTex = new THREE.CanvasTexture(fc2)
-      faceTex.colorSpace = THREE.SRGBColorSpace
-      faceTex.anisotropy = renderer.capabilities.getMaxAnisotropy()
-      if (billboard.image) {
-        faceImg = new Image()
-        faceImg.onload = () => {
-          drawFace()
-          faceTex.needsUpdate = true
-          billboardRefs.placeArrow?.()
-        }
-        faceImg.src = billboard.image
+      // 上牌多高，由文字自己决定：量一遍整段文字的高度，上下各留 PAD_Y。
+      // 这样画面里不会上下空一大块（原来是固定 5.0 高）。
+      const bodyFS = Math.round(0.44 * PX) // 正文字号（世界单位 0.44）
+      const bodyLH = Math.round(bodyFS * 1.34)
+      const layoutIntro = (ctx, startY, colW, padX, boxes, measureOnly) => {
+        let y = startY
+        FACE.intro.forEach((par) => {
+          // 段落可以写成数组，也可以写成 { seg: [...], scale: 0.7 } 单独缩小字号
+          const segs = Array.isArray(par) ? par : par.seg
+          const sc = (Array.isArray(par) ? 1 : par.scale) || 1
+          const fs = Math.round(bodyFS * sc)
+          const lh = Math.round(bodyLH * sc)
+          y += drawPara(ctx, segs, `400 ${fs}px ${CTA_FONT}`, lh, padX, y, colW, boxes, measureOnly)
+          y += lh * 0.6
+        })
+        return y - startY
       }
-      if (billboard.lines && !billboard.image && document.fonts?.load) {
-        Promise.all([
-          document.fonts.load('600 150px Figtree'),
-          document.fonts.load('400 66px Figtree'),
-        ])
-          .then(() => {
-            drawFace()
-            faceTex.needsUpdate = true
-          })
-          .catch(() => {})
-      }
-      // 画面不受场景光照影响（MeshBasicMaterial + 不做色调映射），白底就是纯白，图片颜色和原图一致
-      const faceMat = new THREE.MeshBasicMaterial({ map: faceTex, toneMapped: false })
-      bbDispose.push(faceTex, faceMat)
+      const PAD_X = 0.62 // 上牌文字左右留白（世界单位）
+      const MAIN_COL_W = (W - PAD_X * 2) * PX
+      const introH = layoutIntro(document.createElement('canvas').getContext('2d'), 0, MAIN_COL_W, 0, null, true)
+      const Hh = introH / PX + PAD_Y * 2 // 上牌画面高
+      const panelY = POLE_H + 0.9 + Hh / 2
 
-      const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => {
+      const faceMain = mkFace(W, Hh)
+      const faceSide = mkFace(W2, H2)
+
+      let faceBoxes = [] // 主牌文字里空出来的行内小动画位置（挥手、气球）
+      const drawMain = () => {
+        const { ctx, FW, FH } = faceMain
+        ctx.clearRect(0, 0, FW, FH)
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, FW, FH)
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'alphabetic'
+        faceBoxes = []
+        // 画面高度就是按这段文字算出来的，所以从上留白 + 一行基线的位置开始画正好
+        layoutIntro(ctx, PAD_Y * PX + bodyLH * 0.76, MAIN_COL_W, PAD_X * PX, faceBoxes, false)
+      }
+      // 副牌上会动的小面片的位置（副牌贴图上的像素）
+      const ARROW = { cx: faceSide.FW * 0.575, cy: faceSide.FH * 0.46, r: 0.43 * PX }
+      const PHOTO_R = 0.32 * PX
+      const PHOTOS = (FACE.photos || []).map((src, i) => ({
+        src,
+        cx: faceSide.FW * 0.7 + i * PHOTO_R * 2.2,
+        cy: ARROW.cy,
+        r: PHOTO_R,
+      }))
+      const drawSide = () => {
+        const { ctx, FW, FH } = faceSide
+        ctx.clearRect(0, 0, FW, FH)
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, FW, FH)
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'alphabetic'
+        const fs = Math.round(0.5 * PX)
+        ctx.font = `400 ${fs}px ${CTA_FONT}`
+        ctx.fillStyle = FACE_BLUE
+        FACE.cta.lines.forEach((ln, i) => ctx.fillText(ln, FW * 0.06, FH * 0.45 + i * fs * 1.12))
+      }
+      drawMain()
+      drawSide()
+
+      const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0, parent = g) => {
         const m = new THREE.Mesh(geo, mat)
         m.position.set(x, y, z)
         m.rotation.set(rx, ry, rz)
         m.castShadow = true
         m.receiveShadow = true
-        g.add(m)
+        parent.add(m)
         bbDispose.push(geo)
         return m
       }
 
-      const W = 12.4 // 画面宽
-      const Hh = 5.7 // 画面高
-      const POLE_H = billboard.pole ?? 4.8 // 立柱露出地面的高度（到走道下方）
-      const panelY = POLE_H + 0.9 + Hh / 2
-      const D = 0.42 // 面板厚度
-      const BORDER = 0.3 // 黑色圆角边框宽度
-      const RADIUS = 0.75 // 圆角
       // 外框：磨砂玻璃。transmission = 光能透过去（看得到后面山丘的模糊影子），
       // roughness 让透过去的东西糊掉 = 磨砂；clearcoat 给表面一层很淡的高光。
       const glassRim = new THREE.MeshPhysicalMaterial({
@@ -542,48 +548,84 @@ function GrassHills({
         return sh
       }
 
-      // 面板：磨砂玻璃圆角外框（带厚度） + 前面嵌一块白色圆角画面
-      const rimGeo = new THREE.ExtrudeGeometry(roundedRect(W + BORDER * 2, Hh + BORDER * 2, RADIUS), {
-        depth: D, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 3, curveSegments: 16,
-      })
-      rimGeo.translate(0, 0, -D / 2)
-      // 顶点色：左上角淡粉 → 右下角浅灰（沿对角线平滑过渡）
-      {
-        const pink = new THREE.Color(0xf4c3d6)
-        const gray = new THREE.Color(0xc4c8cd)
-        const rp = rimGeo.attributes.position
-        const cols = new Float32Array(rp.count * 3)
-        const cc = new THREE.Color()
-        const halfW = (W + BORDER * 2) / 2
-        const halfH = (Hh + BORDER * 2) / 2
-        for (let i = 0; i < rp.count; i++) {
-          const u = (rp.getX(i) / halfW + 1) / 2 // 0 左 → 1 右
-          const v = (1 - rp.getY(i) / halfH) / 2 // 0 上 → 1 下
-          let t = THREE.MathUtils.clamp(u * 0.55 + v * 0.45, 0, 1)
-          t = t * t * (3 - 2 * t)
-          cc.copy(pink).lerp(gray, t)
-          cols[i * 3] = cc.r
-          cols[i * 3 + 1] = cc.g
-          cols[i * 3 + 2] = cc.b
+      // 做一块牌子：磨砂玻璃圆角外框（带厚度） + 前面嵌一块白色圆角画面。
+      // 外框的粉→灰渐变按「整组宽度」算，所以两块牌子接在一起时渐变是连贯的。
+      const makePanel = (f, cx, cy, cz, parent = g, border = BORDER) => {
+        const rimGeo = new THREE.ExtrudeGeometry(roundedRect(f.w + border * 2, f.h + border * 2, RADIUS), {
+          depth: D, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 3, curveSegments: 16,
+        })
+        rimGeo.translate(0, 0, -D / 2)
+        {
+          const pink = new THREE.Color(0xf4c3d6)
+          const gray = new THREE.Color(0xc4c8cd)
+          const rp = rimGeo.attributes.position
+          const cols = new Float32Array(rp.count * 3)
+          const cc = new THREE.Color()
+          const halfW = (f.w + border * 2) / 2
+          const halfH = (f.h + border * 2) / 2
+          for (let i = 0; i < rp.count; i++) {
+            const u = (rp.getX(i) / halfW + 1) / 2 // 0 左 → 1 右
+            const v = (1 - rp.getY(i) / halfH) / 2 // 0 上 → 1 下
+            let t = THREE.MathUtils.clamp(u * 0.55 + v * 0.45, 0, 1)
+            t = t * t * (3 - 2 * t)
+            cc.copy(pink).lerp(gray, t)
+            cols[i * 3] = cc.r
+            cols[i * 3 + 1] = cc.g
+            cols[i * 3 + 2] = cc.b
+          }
+          rimGeo.setAttribute('color', new THREE.BufferAttribute(cols, 3))
         }
-        rimGeo.setAttribute('color', new THREE.BufferAttribute(cols, 3))
+        add(rimGeo, glassRim, cx, cy, cz, 0, 0, 0, parent)
+        const faceGeo = new THREE.ShapeGeometry(roundedRect(f.w, f.h, Math.max(0.05, RADIUS - border)), 16)
+        // ShapeGeometry 的 uv 是原始坐标，换算成 0~1 才能正确贴图
+        const fuv = faceGeo.attributes.uv
+        const fpos = faceGeo.attributes.position
+        for (let i = 0; i < fuv.count; i++) fuv.setXY(i, fpos.getX(i) / f.w + 0.5, fpos.getY(i) / f.h + 0.5)
+        const m = add(faceGeo, f.mat, cx, cy, cz + D / 2 + 0.045, 0, 0, 0, parent)
+        m.castShadow = false
+        // 贴图像素 → 广告牌自己的坐标，给上面要放的小面片用
+        return {
+          cx, cy, cz,
+          x: (px) => cx + (px / f.FW - 0.5) * f.w,
+          y: (py) => cy + (0.5 - py / f.FH) * f.h,
+          s: (r) => ((2 * r) / f.FW) * f.w,
+          z: cz + D / 2 + 0.055,
+        }
       }
-      add(rimGeo, glassRim, 0, panelY, 0)
-      const faceGeo = new THREE.ShapeGeometry(roundedRect(W, Hh, Math.max(0.05, RADIUS - BORDER)), 16)
-      // ShapeGeometry 的 uv 是原始坐标，换算成 0~1 才能正确贴图
-      const fuv = faceGeo.attributes.uv
-      const fpos = faceGeo.attributes.position
-      for (let i = 0; i < fuv.count; i++) fuv.setXY(i, fpos.getX(i) / W + 0.5, fpos.getY(i) / Hh + 0.5)
-      const face = add(faceGeo, faceMat, 0, panelY, D / 2 + 0.045)
-      face.castShadow = false
+      const panelMain = makePanel(faceMain, MAIN_X, panelY, 0)
+
+      // 下牌：吊在走道横梁下面。hang 这个组的原点就是链子的吊点，
+      // 渲染循环里绕原点左右轻轻转一点点 → 整串（链子 + 牌子）像被风吹着晃。
+      const walkY = panelY - Hh / 2 - BORDER - 0.75 // 走道高度（下面做走道时还要用）
+      const hang = new THREE.Group()
+      hang.position.set(0, walkY - 0.26, HANG_Z)
+      g.add(hang)
+      billboardRefs.hang = hang
+      const panelSide = makePanel(faceSide, 0, -(CHAIN_LEN + H2 / 2 + BORDER_SIDE), 0, hang, BORDER_SIDE)
+
+      // 两条链子：一节一节的小圆环，相邻两节转 90°，就是一条真链子的样子
+      {
+        const linkGeo = new THREE.TorusGeometry(0.13, 0.038, 8, 14)
+        bbDispose.push(linkGeo)
+        const STEP = 0.2
+        const n = Math.max(2, Math.round((CHAIN_LEN - 0.1) / STEP))
+        for (const sx of [-CHAIN_X, CHAIN_X]) {
+          // 吊点上的小挂耳
+          add(new THREE.BoxGeometry(0.22, 0.22, 0.22), steelDark, sx, 0.04, 0, 0, 0, 0, hang)
+          for (let i = 0; i < n; i++) {
+            add(linkGeo, steelDark, sx, -0.18 - i * STEP, 0, 0, (i % 2) * (Math.PI / 2), 0, hang)
+          }
+          // 牌子顶上的小挂耳
+          add(new THREE.BoxGeometry(0.22, 0.26, 0.22), steelDark, sx, -CHAIN_LEN + 0.06, 0, 0, 0, 0, hang)
+        }
+      }
 
       // 蓝色圆形箭头：单独一小块面片贴在画面上，渲染循环里让它每隔一会儿左右弹一下
-      if (billboard.cta) {
-        const cta = billboard.cta
+      {
         const ac = document.createElement('canvas')
         ac.width = ac.height = 512
         const ax = ac.getContext('2d')
-        ax.fillStyle = cta.color
+        ax.fillStyle = FACE_BLUE
         ax.beginPath()
         ax.arc(256, 256, 250, 0, Math.PI * 2)
         ax.fill()
@@ -607,27 +649,250 @@ function GrassHills({
         const arrowGeo = new THREE.PlaneGeometry(1, 1)
         bbDispose.push(arrowTex, arrowMat, arrowGeo)
         const arrow = new THREE.Mesh(arrowGeo, arrowMat)
-        arrow.visible = false
+        const size = panelSide.s(ARROW.r)
+        arrow.position.set(panelSide.x(ARROW.cx), panelSide.y(ARROW.cy), panelSide.z)
+        arrow.scale.set(size, size, 1)
         arrow.renderOrder = 2
-        g.add(arrow)
-        billboardRefs.placeArrow = () => {
-          if (!faceLayout) return
-          const { k, ox, oy } = faceLayout
-          const { cx, cy, r } = cta.circle
-          const size = ((2 * r * k) / FW) * W
-          arrow.position.set(((ox + cx * k) / FW - 0.5) * W, panelY + (0.5 - (oy + cy * k) / FH) * Hh, D / 2 + 0.06)
-          arrow.scale.set(size, size, 1)
-          billboardRefs.arrow = arrow
-          billboardRefs.arrowBase = arrow.position.x
-          billboardRefs.arrowSize = size
-          arrow.visible = true
+        hang.add(arrow)
+        billboardRefs.arrow = arrow
+        billboardRefs.arrowBase = arrow.position.x
+        billboardRefs.arrowSize = size
+      }
+
+      // 「Hi」不写在画面上，而是两个漂浮的铝膜字母气球（就是派对上那种 H / I 字母球）。
+      // 位置用文字里给它留的那块空位，尺寸也照着那块空位算，所以不会压到旁边的字。
+      if (FACE.balloon) {
+        const box = faceBoxes.find((b) => b.name === FACE.balloon.at)
+        if (box) {
+          const slotW = panelMain.s(box.size) // 文字里留出来的空位有多宽（世界单位）
+          const grp = new THREE.Group()
+          // 字母整体比一行字高一些，往上长（上面是留白，不会盖到第二行）
+          grp.position.set(panelMain.x(box.cx), panelMain.y(box.cy) + slotW * 0.2, panelMain.z + slotW * 0.45)
+          g.add(grp)
+
+          // 铝膜表面的褶皱：画一张「揉皱的锡纸」灰度图，当凹凸 + 粗糙度贴图用。
+          // 不加这个的话表面是光滑的镜面，一点气球的质感都没有。
+          const crinkle = (() => {
+            const S = 512
+            const bc = document.createElement('canvas')
+            bc.width = bc.height = S
+            const bx = bc.getContext('2d')
+            bx.fillStyle = '#808080'
+            bx.fillRect(0, 0, S, S)
+            // 一块块不规则的小面（像揉过的锡纸那样的折面）
+            for (let i = 0; i < 260; i++) {
+              const x = Math.random() * S
+              const y = Math.random() * S
+              const r = 16 + Math.random() * 54
+              const n = 3 + ((Math.random() * 3) | 0)
+              bx.beginPath()
+              for (let k = 0; k < n; k++) {
+                const a = (k / n) * Math.PI * 2 + Math.random() * 0.9
+                const rr = r * (0.45 + Math.random() * 0.85)
+                const px = x + Math.cos(a) * rr
+                const py = y + Math.sin(a) * rr
+                if (k) bx.lineTo(px, py)
+                else bx.moveTo(px, py)
+              }
+              bx.closePath()
+              const v = Math.round(128 + (Math.random() - 0.5) * 76)
+              bx.fillStyle = `rgb(${v},${v},${v})`
+              bx.fill()
+            }
+            // 折痕：一道亮一道暗的细线
+            bx.lineCap = 'round'
+            for (let i = 0; i < 200; i++) {
+              const x = Math.random() * S
+              const y = Math.random() * S
+              const a = Math.random() * Math.PI * 2
+              const len = 24 + Math.random() * 130
+              bx.strokeStyle = Math.random() < 0.5 ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)'
+              bx.lineWidth = 1 + Math.random() * 2.6
+              bx.beginPath()
+              bx.moveTo(x, y)
+              bx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len)
+              bx.stroke()
+            }
+            try {
+              bx.filter = 'blur(1.1px)' // 柔一点，不然像噪点
+              bx.drawImage(bc, 0, 0)
+              bx.filter = 'none'
+            } catch {
+              /* 老浏览器不支持 canvas filter，不糊也能用 */
+            }
+            const tex = new THREE.CanvasTexture(bc)
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+            tex.repeat.set(4.5, 4.5)
+            return tex
+          })()
+          bbDispose.push(crinkle)
+
+          // 铝膜材质：金属 + 清漆，褶皱同时作用在凹凸和粗糙度上，
+          // 所以高光是碎的、一块块的，而不是一整片镜面。每个字母可以有自己的颜色。
+          const mkFoil = (color) => {
+            const m = new THREE.MeshPhysicalMaterial({
+              color: new THREE.Color(color),
+              metalness: 0.32, // 金属度越高颜色越灰，压低才鲜艳
+              roughness: 0.22,
+              roughnessMap: crinkle,
+              bumpMap: crinkle,
+              bumpScale: 0.03,
+              clearcoat: 1,
+              clearcoatRoughness: 0.08,
+              envMap: envTex,
+              envMapIntensity: 0.95,
+            })
+            bbDispose.push(m)
+            return m
+          }
+
+          // 一节「吹鼓的笔画」：圆角矩形往外鼓一圈（厚倒角）= 气球那种圆滚滚的边。
+          // 鼓起来的量按这节笔画自己的粗细算 —— 写死一个值的话，细的横杠会被吃没。
+          const puffyBar = (w, h) => {
+            const puff = Math.min(w, h) * 0.62 // 鼓起来的量：越大越像吹饱的气球（太大字形会糊）
+            const iw = Math.max(0.02, w - puff)
+            const ih = Math.max(0.02, h - puff)
+            const depth = puff * 0.5 // 前后也要有厚度，不然只是一块鼓边的饼
+            const geo = new THREE.ExtrudeGeometry(roundedRect(iw, ih, Math.min(iw, ih) * 0.45), {
+              depth,
+              bevelEnabled: true,
+              bevelThickness: puff * 0.62,
+              bevelSize: puff / 2,
+              bevelSegments: 9,
+              curveSegments: 16,
+            })
+            geo.translate(0, 0, -depth / 2)
+            bbDispose.push(geo)
+            return geo
+          }
+          // 字母都按「高度 = 1」来做，最后整体缩放
+          const letters = {
+            H: (foil) => {
+              const l = new THREE.Group()
+              const stem = 0.32
+              const span = 1.06
+              for (const sx of [-(span - stem) / 2, (span - stem) / 2]) {
+                const m = new THREE.Mesh(puffyBar(stem, 1), foil)
+                m.position.x = sx
+                l.add(m)
+              }
+              l.add(new THREE.Mesh(puffyBar(span - stem * 1.35, stem * 0.95), foil))
+              return { grp: l, w: span }
+            },
+            I: (foil) => {
+              const l = new THREE.Group()
+              l.add(new THREE.Mesh(puffyBar(0.36, 1), foil))
+              return { grp: l, w: 0.36 }
+            },
+          }
+
+          const text = (FACE.balloon.text || 'HI').toUpperCase()
+          const GAP = 0.2
+          const colors = FACE.balloon.colors || []
+          const built = [...text].map((ch, i) =>
+            (letters[ch] || letters.I)(mkFoil(colors[i] || FACE.balloon.color || '#9ea7b1')),
+          )
+          const totalW = built.reduce((s, b) => s + b.w, 0) + GAP * (built.length - 1)
+          // 整排字母正好塞进留出来的空位（留一点点边）
+          const scale = (slotW * 1.02) / totalW
+          let x = -totalW / 2
+          const TILT = [-0.1, 0.12, -0.08, 0.09] // 每个字母歪一点点，别站得太规矩
+          const parts = built.map((b, i) => {
+            b.grp.position.x = x + b.w / 2
+            b.grp.rotation.z = TILT[i % TILT.length]
+            x += b.w + GAP
+            grp.add(b.grp)
+            return b.grp
+          })
+          grp.scale.setScalar(scale)
+
+          billboardRefs.balloon = {
+            grp,
+            parts,
+            baseX: grp.position.x,
+            baseY: grp.position.y,
+            size: slotW,
+            scale,
+          }
         }
-        billboardRefs.placeArrow()
+      }
+
+      // 行内小动画（比如 Hi, 后面挥手的手）：贴图是一张逐帧横排的 png，渲染循环里按帧率换帧。
+      // 位置是上面画文字时量出来的（faceBoxes），所以文案一改它会跟着挪。
+      if (FACE.inline && faceBoxes.length) {
+        billboardRefs.sprites = faceBoxes
+          .map((box) => {
+            const cfg = FACE.inline[box.name]
+            if (!cfg) return null
+            const tex = new THREE.TextureLoader().load(cfg.sprite)
+            tex.colorSpace = THREE.SRGBColorSpace
+            tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
+            tex.magFilter = THREE.LinearFilter
+            tex.minFilter = THREE.LinearMipmapLinearFilter
+            tex.repeat.set(1 / cfg.frames, 1)
+            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, depthWrite: false })
+            const geo = new THREE.PlaneGeometry(1, 1)
+            bbDispose.push(tex, mat, geo)
+            const m = new THREE.Mesh(geo, mat)
+            const size = panelMain.s(box.size)
+            m.position.set(panelMain.x(box.cx), panelMain.y(box.cy), panelMain.z)
+            m.scale.set(size, size, 1)
+            m.renderOrder = 2
+            g.add(m) // 挥手在上牌上，不跟着晃
+            return { tex, frames: cfg.frames, fps: cfg.fps ?? 12 }
+          })
+          .filter(Boolean)
+      }
+
+      // 三张圆形照片：贴在画面右边，广告牌立起来的过程中一张张「冒」出来（见渲染循环）
+      if (PHOTOS.length) {
+        billboardRefs.photos = PHOTOS.map((ph, i) => {
+          // 照片先裁成正方形（居中 cover），再用圆形面片贴上去
+          const pc = document.createElement('canvas')
+          pc.width = pc.height = 512
+          const px = pc.getContext('2d')
+          px.fillStyle = '#eeeeee'
+          px.fillRect(0, 0, 512, 512)
+          const tex = new THREE.CanvasTexture(pc)
+          tex.colorSpace = THREE.SRGBColorSpace
+          tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
+          const img = new Image()
+          img.onload = () => {
+            const k = Math.max(512 / img.naturalWidth, 512 / img.naturalHeight)
+            const w = img.naturalWidth * k
+            const h = img.naturalHeight * k
+            px.drawImage(img, (512 - w) / 2, (512 - h) / 2, w, h)
+            tex.needsUpdate = true
+          }
+          img.src = ph.src
+
+          const size = panelSide.s(ph.r)
+          const grp = new THREE.Group()
+          grp.position.set(panelSide.x(ph.cx), panelSide.y(ph.cy), panelSide.z)
+          hang.add(grp)
+
+          // 白色描边（后面大一圈的圆）
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false, transparent: true, depthWrite: false })
+          const ringGeo = new THREE.CircleGeometry(0.56, 48)
+          const ring = new THREE.Mesh(ringGeo, ringMat)
+          ring.renderOrder = 2
+          grp.add(ring)
+
+          const photoMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true, depthWrite: false })
+          const photoGeo = new THREE.CircleGeometry(0.5, 48)
+          const photo = new THREE.Mesh(photoGeo, photoMat)
+          photo.position.z = 0.006
+          photo.renderOrder = 3
+          grp.add(photo)
+
+          bbDispose.push(tex, ringMat, ringGeo, photoMat, photoGeo)
+          grp.scale.setScalar(0.001)
+          return { grp, size, baseY: grp.position.y, delay: i * 0.12 }
+        })
       }
 
       // 底部走道：一块平台 + 前面一排栏杆 + 平台下面一根横梁，横梁上挂一排朝上的灯
-      const walkY = panelY - Hh / 2 - BORDER - 0.75
-      const WW = W + 1.2
+      const WW = TOTAL_W - 0.4 // 走道比整组牌子略窄
       add(new THREE.BoxGeometry(WW, 0.12, 1.3), steel, 0, walkY, 0.25)
       add(new THREE.BoxGeometry(WW, 0.22, 0.22), steelDark, 0, walkY - 0.2, 0.0) // 平台下横梁
       add(new THREE.CylinderGeometry(0.045, 0.045, WW, 12), steel, 0, walkY + 0.85, 0.88, 0, 0, Math.PI / 2)
@@ -637,18 +902,18 @@ function GrassHills({
         add(new THREE.CylinderGeometry(0.035, 0.035, 0.86, 10), steel, xx, walkY + 0.43, 0.88)
       }
       // 面板和走道之间的几根短连接
-      for (const xx of [-W * 0.4, -W * 0.13, W * 0.13, W * 0.4]) {
+      for (const xx of [-TOTAL_W * 0.38, -TOTAL_W * 0.13, TOTAL_W * 0.13, TOTAL_W * 0.38]) {
         add(new THREE.BoxGeometry(0.12, 0.8, 0.12), steelDark, xx, walkY + 0.45, -0.15)
       }
       // 平台前沿下方一排朝上的小灯
       for (let k = 0; k < 6; k++) {
-        const xx = -W * 0.42 + (k * W * 0.84) / 5
+        const xx = -TOTAL_W * 0.4 + (k * TOTAL_W * 0.8) / 5
         add(new THREE.CylinderGeometry(0.03, 0.03, 0.35, 8), steelDark, xx, walkY - 0.28, 0.75)
         add(new THREE.CylinderGeometry(0.26, 0.18, 0.12, 20), steelDark, xx, walkY - 0.48, 0.75)
       }
 
       // 两根细长立柱（埋进地里一截） + 底部一根横撑
-      const LEG_X = W * 0.3
+      const LEG_X = TOTAL_W * 0.26
       for (const xx of [-LEG_X, LEG_X]) {
         const legH = walkY - 0.3 + 2.2
         add(new THREE.CylinderGeometry(0.2, 0.22, legH, 28), glassLeg, xx, legH / 2 - 2.2, -0.05)
@@ -761,10 +1026,11 @@ function GrassHills({
       billboardRefs.grassUniforms = grassUniforms
       billboardRefs.group = g
       billboardRefs.baseY = g.position.y
-      billboardRefs.faceLocal = new THREE.Vector3(0, panelY, D / 2 + 0.045) // 画面中心（广告牌自己的坐标）
+      // 聚焦（点开 About）对准的是主牌：About 内容铺在主牌那块白画面上
+      billboardRefs.faceLocal = new THREE.Vector3(MAIN_X, panelY, D / 2 + 0.045)
       billboardRefs.faceW = W + BORDER * 2
-      billboardRefs.faceTL = new THREE.Vector3(-W / 2, panelY + Hh / 2, D / 2 + 0.045) // 白色画面左上角
-      billboardRefs.faceBR = new THREE.Vector3(W / 2, panelY - Hh / 2, D / 2 + 0.045) // 白色画面右下角
+      billboardRefs.faceTL = new THREE.Vector3(MAIN_X - W / 2, panelY + Hh / 2, D / 2 + 0.045)
+      billboardRefs.faceBR = new THREE.Vector3(MAIN_X + W / 2, panelY - Hh / 2, D / 2 + 0.045)
       billboardRefs.faceRadius = Math.max(0.05, RADIUS - BORDER) / W // 圆角占画面宽度的比例
       billboardRefs.faceH = Hh + BORDER * 2
       billboardRefs.rise = 11.7 * g.scale.y * 0.45 // 没立起来时往下沉多少（大约整块高度的 45%）
@@ -776,7 +1042,7 @@ function GrassHills({
       sun.target.position.copy(sPos)
       scene.add(sun.target)
       sun.castShadow = true
-      sun.shadow.mapSize.set(4096, 4096)
+      sun.shadow.mapSize.set(2048, 2048)
       sun.shadow.camera.near = 10
       sun.shadow.camera.far = 160
       sun.shadow.camera.left = -45
@@ -933,8 +1199,8 @@ function GrassHills({
     const tmpQ = new THREE.Quaternion()
     const ovA = new THREE.Vector3()
     const ovB = new THREE.Vector3()
-    let focusF = 0
-    let lastFe = 0
+    let focusF = mountFocusRef.current ? 1 : 0
+    let lastFe = -1 // 先设成不可能的值，保证第一帧一定按当前聚焦程度重算一次投影
     let lastT = 0
 
     // --- 点击广告牌 → 聚焦；聚焦时点别处 / Esc / Back → 退出 ---
@@ -947,17 +1213,35 @@ function GrassHills({
       pickRay.setFromCamera(pickNdc, camera)
       return pickRay.intersectObject(billboardRefs.group, true).length > 0
     }
+    // 把画布滚到屏幕正中，聚焦时整块广告牌都在视野里
+    const centerCanvas = (instant = false) => {
+      const r = mount.getBoundingClientRect()
+      const top = Math.max(0, window.scrollY + r.top - Math.max(0, (window.innerHeight - r.height) / 2))
+      if (Math.abs(top - window.scrollY) < 24) return
+      window.scrollTo({ top, behavior: instant ? 'auto' : 'smooth' })
+    }
     const setFocus = (on) => {
       focusTargetRef.current = on ? 1 : 0
       setFocused(on)
       onFocusChangeRef.current?.(on)
       if (on) {
-        // 把画布滚到屏幕正中，聚焦时整块广告牌都在视野里
-        const r = mount.getBoundingClientRect()
-        window.scrollTo({ top: window.scrollY + r.top - Math.max(0, (window.innerHeight - r.height) / 2), behavior: 'smooth' })
+        centerCanvas()
+        // 直接从 /aboutme 打开时，标题测量完会把山丘整体上移（marginTop），
+        // 刚才算的位置就偏了 —— 等布局落定再校正一次。
+        setTimeout(() => focusTargetRef.current === 1 && centerCanvas(), 500)
       }
     }
     focusApiRef.current.setFocus = setFocus
+    focusApiRef.current.center = centerCanvas
+    // 进来时就该是聚焦状态（从别的页面点 About）：直接摆成对焦画面，不播动画、不平滑滚动
+    if (mountFocusRef.current) {
+      mountFocusRef.current = false
+      focusTargetRef.current = 1
+      setFocused(true)
+      onFocusChangeRef.current?.(true)
+      centerCanvas(true)
+      setTimeout(() => focusTargetRef.current === 1 && centerCanvas(true), 400) // 等标题测量把山丘挪完再校一次
+    }
     const onClick = (e) => {
       if (e.target.closest?.('[data-marker], [data-hillcard], [data-bb-ui]')) return
       const hit = hitsBillboard(e)
@@ -989,10 +1273,12 @@ function GrassHills({
       const fe = focusF * focusF * (3 - 2 * focusF)
 
       // 广告牌随滚动「立起来」：从沉在草里、往后仰，平滑升到完全竖直；聚焦时强制完全立好、不倾斜
+      let riseE = 1 // 广告牌立起来的进度，照片的弹出跟着它走
       if (billboardRefs.group) {
         const raw = !progressRef.current || REDUCE ? 1 : Math.min(1, Math.max(0, progressRef.current()))
         let e = raw < 0.5 ? 4 * raw * raw * raw : 1 - Math.pow(-2 * raw + 2, 3) / 2
         e += (1 - e) * fe
+        riseE = e
         const gg = billboardRefs.group
         gg.position.y = billboardRefs.baseY - billboardRefs.rise * (1 - e)
         gg.rotation.x = -0.2 * (1 - e)
@@ -1014,6 +1300,44 @@ function GrassHills({
         }
         billboardRefs.arrow.position.x = billboardRefs.arrowBase + dx
         billboardRefs.arrow.scale.set(billboardRefs.arrowSize * pop, billboardRefs.arrowSize * pop, 1)
+      }
+
+      // 吊在链子上的下牌：绕吊点左右轻轻晃（两个频率叠加，不那么机械）
+      if (billboardRefs.hang) {
+        billboardRefs.hang.rotation.z = REDUCE
+          ? 0
+          : Math.sin(t * 0.62) * 0.028 + Math.sin(t * 0.37 + 1.3) * 0.014
+      }
+
+      // HI 字母气球：整排上下慢慢漂 + 轻微倾斜，每个字母再各自错开一点，像各飘各的
+      if (billboardRefs.balloon && !REDUCE) {
+        const b = billboardRefs.balloon
+        b.grp.position.y = b.baseY + Math.sin(t * 0.8) * b.size * 0.09
+        b.grp.position.x = b.baseX + Math.sin(t * 0.51 + 1.1) * b.size * 0.04
+        b.grp.rotation.z = Math.sin(t * 0.63 + 0.4) * 0.05
+        b.parts.forEach((pGrp, i) => {
+          pGrp.position.y = Math.sin(t * 1.05 + i * 1.6) * 0.05
+          pGrp.rotation.z = Math.sin(t * 0.77 + i * 2.1) * 0.06
+        })
+      }
+
+      // 行内小动画：按帧率切贴图上的一格
+      if (billboardRefs.sprites) {
+        for (const sp of billboardRefs.sprites) {
+          sp.tex.offset.x = (Math.floor(t * sp.fps) % sp.frames) / sp.frames
+        }
+      }
+
+      // 三张圆形照片：跟着广告牌立起来一张张弹出（带一点回弹），之后轻轻上下浮
+      if (billboardRefs.photos) {
+        for (const ph of billboardRefs.photos) {
+          const k = Math.min(1, Math.max(0, (riseE - 0.25 - ph.delay) / 0.4))
+          // easeOutBack：冲过头一点再回来，看起来是「冒」出来的
+          const kk = k >= 1 ? 1 : 1 + 2.7 * Math.pow(k - 1, 3) + 1.7 * Math.pow(k - 1, 2)
+          const bob = REDUCE ? 0 : Math.sin(t * 1.1 + ph.delay * 14) * 0.035
+          ph.grp.scale.setScalar(Math.max(0.0001, ph.size * kk * (1 + bob * 0.4)))
+          ph.grp.position.y = ph.baseY + bob * ph.size * 0.5
+        }
       }
 
       curX += (targetX - curX) * 0.05
@@ -1058,6 +1382,7 @@ function GrassHills({
       }
       if (billboardRefs.grassUniforms && !REDUCE) billboardRefs.grassUniforms.uTime.value = t
       renderer.render(scene, camera)
+      if (el.style.opacity !== '1') el.style.opacity = '1' // 第一帧画完，淡入
 
       // 刚画完，趁缓冲还在，读鼠标底下那一个像素，告诉自定义鼠标这里是深是浅。
       // 每 4 帧一次、只读 1 像素；鼠标不在画布上就不读。
@@ -1189,7 +1514,37 @@ function GrassHills({
       renderer.dispose()
       if (el.parentNode === mount) mount.removeChild(el)
     }
+    }
+    // 正常情况下等两帧（页面先画出来）；页面在后台时 rAF 会被降频，所以再加一个定时器兜底，谁先到用谁
+    let started = false
+    const start = () => {
+      if (started || cancelled) return
+      started = true
+      dispose = build()
+    }
+    const raf0 = requestAnimationFrame(() => requestAnimationFrame(start))
+    const timer0 = setTimeout(start, 150)
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(raf0)
+      clearTimeout(timer0)
+      dispose?.()
+    }
   }, [])
+
+  // 外面传进来的聚焦状态（跟着地址栏走）：和组件内部点击聚焦共用一套状态。
+  // 必须放在上面那个主 effect 之后 —— setFocus 是在主 effect 里准备好的。
+  // 已经是这个状态就不重复触发，避免「点广告牌 → 改地址 → 又触发一次」绕圈。
+  // 画布被整体挪动后（首页量完标题会挪一次），聚焦中的话重新居中
+  useEffect(() => {
+    if (focusTargetRef.current === 1) focusApiRef.current.center?.()
+  }, [layoutShift])
+
+  useEffect(() => {
+    if (autoFocus == null) return
+    if (autoFocus && focusTargetRef.current !== 1) focusApiRef.current.setFocus?.(true)
+    else if (!autoFocus && focusTargetRef.current === 1) focusApiRef.current.setFocus?.(false)
+  }, [autoFocus])
 
   return (
     <div

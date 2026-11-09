@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
-import AboutMe from './pages/AboutMe'
 import HiveAi from './pages/HiveAi'
 import Nexus from './pages/Nexus'
 import Skinlab from './pages/Skinlab'
@@ -34,7 +33,9 @@ function App() {
         <Route path="/" element={<Home key="home" />} />
         <Route path="/product" element={<Home key="home" />} />
         <Route path="/branding" element={<Home key="home" />} />
-        <Route path="/aboutme" element={<AboutMe />} />
+        {/* About：不再是单独一页，而是首页广告牌点开后的那个画面（见 Home.jsx 的 autoFocus）。
+            旧的 AboutMe 页面文件还留在 src/pages/AboutMe.jsx，没有删，想恢复把它挂回这里就行。 */}
+        <Route path="/aboutme" element={<Home key="home" />} />
         <Route path="/hiveai" element={<HiveAi />} />
         <Route path="/nexus" element={<Nexus />} />
         <Route path="/skinlab" element={<Skinlab />} />

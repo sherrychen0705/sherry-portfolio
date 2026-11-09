@@ -70,9 +70,17 @@ import {
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 import GrassHills from '../components/GrassHills'
-import IntroReveal from '../components/IntroReveal'
-import billboardImg from '../assets/home/billboard.png'
 import AboutContent from '../components/AboutContent'
+// 广告牌上「冒」出来的三张圆形照片：和标题动画里用的是同三张
+import introA from '../assets/home/intro/char-a.jpg'
+import introB from '../assets/home/intro/char-b.jpg'
+import introC from '../assets/home/intro/char-c.jpg'
+// Hi, 后面那只挥手：原来的 waving.gif 逐帧铺成一条横图（15 帧），
+// 贴到广告牌上按帧播放（GIF 本身没法当 3D 贴图用）。想换动画就换这张图和下面的帧数。
+import waveStrip from '../assets/home/intro/waving-strip.png'
+
+// 广告牌上的蓝色（箭头、大字、文中高亮的词共用）
+const BILLBOARD_BLUE = '#239fe4'
 
 // value=内部过滤值/路由（不变），label=按钮显示文字
 const filterTags = [
@@ -231,18 +239,8 @@ const heroMarkers = [
 ]
 
 
-function Hero({ titleRef }) {
-  return (
-    <header className="container-fluid flex min-h-[39vh] flex-col items-center justify-center pt-11 text-center">
-      {/* 「设计工具选中物件」入场动效（复刻录屏） */}
-      {/* 往下挪一点。标题在山丘画布「后面」：画布天空透明，山挡住字的底部 */}
-      <div ref={titleRef} className="ir-stage mt-10" style={{ willChange: 'transform' }}>
-        <IntroReveal />
-      </div>
-      {/* 自我介绍那段文字挪到了山丘里的广告牌上（见下面 GrassHills 的 billboard.lines） */}
-    </header>
-  )
-}
+// 原来这里是 Hero 标题（{ Clarity With Character } 的打字动效），已整块去掉。
+// 组件本身还在 src/components/IntroReveal.jsx，想恢复就把它放回这里。
 
 function HeroVideo() {
   return (
@@ -1013,96 +1011,18 @@ function ExperimentGallery({ defaults = galleryDefaults, storageKey, saveName })
 // 点 filter 就是切换地址；直接打开某个地址、或者按浏览器前进后退，filter 也会跟着对上。
 const FILTER_PATH = { Branding: '/branding', Product: '/product' }
 
-// 让标题「Clarity With Character」的字底部藏到山丘后面：
-// 量出标题文字的基线位置，再把山丘整体往上挪，使标题下方那一段里「最高的山头」
-// 刚好盖住字高的底部 TITLE_HIDE；山比较低的地方字就完整露出来，离广告牌也远一些。山丘画布的天空是透明的，挪上去以后标题从天空里透出来，
-// 只有被山（和前面的广告牌）挡住的地方看不见。
-const TITLE_HIDE = 0.4
-// 滚动多少像素完成「标题藏进山后 + 广告牌立起来」
-const RISE_SCROLL = 320
+// 滚动多少像素，广告牌从斜躺在草里「立起来」
+const RISE_SCROLL = 130
 const scrollProgress = () => Math.min(1, Math.max(0, window.scrollY / RISE_SCROLL))
-const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
-
-function useTitleTuck(hillsRef, ridgeAt, titleRef) {
-  const [shift, setShift] = useState(0)
-  const shiftRef = useRef(0)
-  const liftRef = useRef(0) // 页面顶部时标题往上抬多少，保证一开始完全露在山上面
-  const offsetRef = useRef(0) // 当前实际加在标题上的 translateY
-
-  // 滚动时：标题从「抬高、完全露出」平滑落到「藏一截到山后」
-  useEffect(() => {
-    const apply = () => {
-      const t = titleRef.current
-      if (!t) return
-      const y = -liftRef.current * (1 - easeInOut(scrollProgress()))
-      if (Math.abs(y - offsetRef.current) < 0.1 && t.style.transform) return
-      offsetRef.current = y
-      t.style.transform = `translateY(${y.toFixed(1)}px)`
-    }
-    let raf = 0
-    const onScroll = () => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(apply)
-    }
-    apply()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('scroll', onScroll)
-    }
-  }, [titleRef, shift])
-
-  useEffect(() => {
-    if (!ridgeAt) return
-    const measure = () => {
-      const brace = document.querySelector('.ir-brace-l')
-      const hills = hillsRef.current
-      if (!brace || !hills) return
-      const cs = getComputedStyle(brace)
-      const ctx = document.createElement('canvas').getContext('2d')
-      ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
-      const m = ctx.measureText('H')
-      const asc = m.fontBoundingBoxAscent
-      const desc = m.fontBoundingBoxDescent
-      const capH = m.actualBoundingBoxAscent
-      const r = brace.getBoundingClientRect()
-      // 量的时候扣掉当前滚动动画加在标题上的位移，拿到「落定」时的位置
-      const baseline = r.top + window.scrollY - offsetRef.current + (r.height - (asc + desc)) / 2 + asc
-      liftRef.current = capH * TITLE_HIDE + 18
-      const target = baseline - capH * TITLE_HIDE // 山脊线应该落在这里
-      const hr = hills.getBoundingClientRect()
-      // 标题下方那一段（画面中间 ± 标题大约一半宽）里，最高的山脊（y 最小）
-      const half = Math.min(460, hr.width * 0.32)
-      let top = Infinity
-      for (let x = hr.width / 2 - half; x <= hr.width / 2 + half; x += 8) {
-        const y = ridgeAt(x)
-        if (y < top) top = y
-      }
-      if (!Number.isFinite(top)) return
-      const naturalTop = hr.top + window.scrollY - shiftRef.current
-      const next = Math.round(target - top - naturalTop)
-      shiftRef.current = next
-      setShift(next)
-    }
-    let alive = true
-    ;(document.fonts?.ready || Promise.resolve()).then(() => alive && measure())
-    window.addEventListener('resize', measure)
-    return () => {
-      alive = false
-      window.removeEventListener('resize', measure)
-    }
-  }, [hillsRef, ridgeAt])
-  return shift
-}
 
 function Home() {
   const { pathname } = useLocation()
   const hillsRef = useRef(null)
-  const titleRef = useRef(null)
-  const [ridgeAt, setRidgeAt] = useState(null)
-  const tuck = useTitleTuck(hillsRef, ridgeAt, titleRef)
   const navigate = useNavigate()
   const activeFilter = pathname === '/branding' ? 'Branding' : pathname === '/product' ? 'Product' : null
+  // 导航栏点 About → /aboutme：同一个首页，只是广告牌直接进聚焦（About 内容铺在画面上）。
+  // 点 Back / Esc / 点空白退出聚焦 → 地址回到 /；反过来点广告牌也会把地址改成 /aboutme。
+  const aboutFocused = pathname === '/aboutme'
   const setActiveFilter = (filter) => {
     const to = FILTER_PATH[filter] || '/'
     if (to !== pathname) navigate(to)
@@ -1110,36 +1030,34 @@ function Home() {
   return (
     <div className="min-h-screen bg-white">
       <NavBar fixed />
-      {/* 外层铺天空灰：山丘画布天空透明，往上挪进 hero 以后，底下露出来的都是这个颜色 */}
-      {/* data-cursor：鼠标停在首页封面（标题 + 山丘广告牌）这块区域里时，
+      {/* 外层铺天空灰：山丘画布天空透明，底下露出来的都是这个颜色 */}
+      {/* data-cursor：鼠标停在首页封面（山丘广告牌）这块区域里时，
           自定义鼠标才显示 "Let's Gooo" 标签；往下滚到项目区就淡出（见 CustomCursor.jsx） */}
       <div data-cursor="" style={{ backgroundColor: '#ededed', overflowX: 'clip' }}>
-      {/* 顶部白→灰渐变：与山丘天空色 (#ededed) 无缝衔接 */}
+      {/* 顶部白→灰渐变：与山丘天空色 (#ededed) 无缝衔接；标题去掉后只留一段留白 */}
       <div style={{ background: 'linear-gradient(to bottom, #ffffff 0%, #ffffff 22%, #ededed 100%)', overflowX: 'clip' }}>
-        <div className="h-24" />
-        <Hero titleRef={titleRef} />
+        <div className="h-28" />
       </div>
       {/* Hero 场景：程序化起伏绿地（替换原 exploring-creativity 视频）；高度缩到原来的 95%。
           发光白色方块标记锚定在地形上（世界坐标），随 pan 一起移动 —— 由 GrassHills 内部投影渲染 */}
-      <div ref={hillsRef} style={{ marginTop: tuck }}>
+      <div ref={hillsRef}>
       <GrassHills
         // 多出来的高度全在底部（extraBottom）：上面广告牌 / 山的画面不变，只是往下多看一截草地。
         // 广告牌走道到 filter 之间的草地加高到原来的 1.5 倍（画布从 78vh 加到 88.3vh，上半截仍是原来的 66vh）
         height="clamp(474px, 88.3vh, 972px)"
         extraBottom={0.2516}
         billboardProgress={scrollProgress}
-        // 聚焦广告牌时，把后面的标题淡出（不然会从广告牌上沿露出来）
         // 点开广告牌后，画面上显示完整的 About Me（纯白底），可以在广告牌里上下滚动
         billboardContent={
           <div className="px-[6%] pb-24 pt-14 text-left" style={{ fontFamily: '"Figtree", sans-serif' }}>
             <AboutContent onWhite />
           </div>
         }
+        autoFocus={aboutFocused}
         onFocusChange={(on) => {
-          const t = titleRef.current
-          if (!t) return
-          t.style.transition = 'opacity 0.6s ease'
-          t.style.opacity = on ? '0' : '1'
+          // 聚焦状态写进地址栏：进聚焦 → /aboutme，退出 → 回到原来的列表地址
+          const to = on ? '/aboutme' : FILTER_PATH[activeFilter] || '/'
+          if (to !== pathname) navigate(to)
         }}
         className=""
         // 「take a peak」发光方块暂时不在首页显示（heroMarkers 数据和 GrassHills 里的方块代码都保留，之后用在别处）
@@ -1147,21 +1065,37 @@ function Home() {
         fov={31.5}
         lookY={-5} // 比之前 -2 更低 → 画面里的东西整体往上移，广告牌不再贴着 hero 底部
         transparentSky
-        onSkyline={(fn) => setRidgeAt(() => fn)}
         billboard={{
           x: 0,
-          z: 38,
-          image: billboardImg,
-          // 广告牌图片右半边（原来的箭头 + click to About Me）换成自己画的：蓝色 Want the full story? + 会弹的箭头。
-          // 下面的数字都是原图（1351×634）里的像素位置，照着原来的箭头和文字量出来的
-          cta: {
-            cropX: 700, // 原图 x=700 以右不画
-            color: '#239fe4',
-            circle: { cx: 840.5, cy: 186.5, r: 63.5 },
-            textX: 778,
-            lines: ['Want the', 'full story?'],
-            baselines: [370, 483],
-            fontSize: 104,
+          z: 31, // 往后挪（靠近山）：数字越小离镜头越远、画面里的位置越高
+          scale: 1.2,
+          // 广告牌画面全部用代码画（不再用图片）。改文案就改这里：
+          //  · intro：左边的自我介绍，每一段是一个数组，段里每一截是 [文字, 颜色]，想让哪几个词变蓝就单独拆一截
+          //  · cta：右边的蓝色大字，一行一个字符串
+          //  · photos：右边会「冒」出来的三张圆形照片（和标题动画里是同三张）
+          face: {
+            blue: BILLBOARD_BLUE,
+            // { inline: 'wave' } = 在这里空出一块和这行字差不多高的方块，放挥手的小动画
+            inline: { wave: { sprite: waveStrip, frames: 10, fps: 10 } },
+            // 漂浮的 3D 气球：占位名 'hi'，气球上写的字和颜色在这里改
+            // 字母气球：colors 和 text 一一对应（H 蓝、I 粉）
+            balloon: { at: 'hi', text: 'HI', colors: ['#0d9ff5', '#ff4fa3'] },
+            intro: [
+              [
+                // Hi 不写在画面上，改成一个漂浮在这个位置的 3D 气球（见 GrassHills 的 balloon）
+                { inline: 'hi', w: 1.5 },
+                { inline: 'wave', w: 1.15 },
+                [' this is Sherry. I’m an award-winning, AI-native creator and designer at ', '#111111'],
+                ['Omnicom Health', BILLBOARD_BLUE],
+                [' with ', '#111111'],
+                ['2', BILLBOARD_BLUE],
+                [' years of professional experience.', '#111111'],
+              ],
+              // Prev 这段比上面小 30%
+              { scale: 0.7, seg: [['Prev at IPG Health · IKEA · UMich · Parsons School of Design', '#111111']] },
+            ],
+            cta: { lines: ['Who’s Behind', 'This?'] },
+            photos: [introA, introB, introC],
           },
         }}
         sky={0xededed}
